@@ -7,7 +7,6 @@ from turnbreak.core import state
 from turnbreak.core.items import (
     HistoryOutcome,
     Item,
-    ItemStatus,
     ListEntry,
     append_history,
     load_list,
@@ -24,7 +23,7 @@ def read_item(
     state_file: Path | None = None,
 ) -> None:
     """Mark an item read, record it as an interest match, and clear any hold."""
-    _resolve(session_id, locator, "read", "match", list_file, history_file, state_file)
+    _resolve(session_id, locator, "match", list_file, history_file, state_file, remove=False)
 
 
 def skip_item(
@@ -35,8 +34,8 @@ def skip_item(
     history_file: Path | None = None,
     state_file: Path | None = None,
 ) -> None:
-    """Mark an item skipped, record it as a miss, and clear any hold."""
-    _resolve(session_id, locator, "skipped", "miss", list_file, history_file, state_file)
+    """Remove an item from the list, record it as a miss, and clear any hold."""
+    _resolve(session_id, locator, "miss", list_file, history_file, state_file, remove=True)
 
 
 def keep_reading(session_id: str, *, state_file: Path | None = None) -> state.SessionState | None:
@@ -52,11 +51,12 @@ def keep_reading(session_id: str, *, state_file: Path | None = None) -> state.Se
 def _resolve(
     session_id: str,
     locator: str,
-    new_status: ItemStatus,
     outcome: HistoryOutcome,
     list_file: Path | None,
     history_file: Path | None,
     state_file: Path | None,
+    *,
+    remove: bool,
 ) -> None:
     entries = load_list(list_file)
     updated: list[ListEntry] = []
@@ -64,7 +64,8 @@ def _resolve(
     for entry in entries:
         if resolved is None and entry.item.locator == locator and entry.status == "pending":
             resolved = entry.item
-            updated.append(replace(entry, status=new_status))
+            if not remove:
+                updated.append(replace(entry, status="read"))
         else:
             updated.append(entry)
     save_list(updated, list_file)

@@ -139,7 +139,7 @@ def test_post_action_read_marks_item_read(running_server, home):
     assert history_locators() == {"https://a"}
 
 
-def test_post_action_skip_marks_item_skipped(running_server, home):
+def test_post_action_skip_removes_item_from_list(running_server, home):
     save_list([ListEntry(Item("A", "https://a", 100, "curated"))])
     state.start_turn("abc", 0.0)
     port = running_server.server_address[1]
@@ -147,7 +147,7 @@ def test_post_action_skip_marks_item_skipped(running_server, home):
     result = _post(port, "/action", {"action": "skip", "session_id": "abc", "locator": "https://a"})
 
     assert result == {"ok": True}
-    assert load_list()[0].status == "skipped"
+    assert load_list() == []
 
 
 def test_post_action_keep_holds_state(running_server, home):

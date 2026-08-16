@@ -57,7 +57,7 @@ The page itself has no real items to show yet, since the sources that produce th
 
 **Status: implemented.**
 
-Read marks an item read in `list.jsonl` and records it as an interest match in `history.jsonl`. Skip marks it skipped and records a miss. Keep reading sets `hold_status` to held, which the watcher checks before every fire, so the item stays on screen across turns until the reader picks Read or Skip. All three live as buttons in the page the server serves. Nothing prompts in the agent's terminal.
+Read marks an item read in `list.jsonl` and records it as an interest match in `history.jsonl`. Skip removes the item from `list.jsonl` and records a miss. Keep reading sets `hold_status` to held, which the watcher checks before every fire, so the item stays on screen across turns until the reader picks Read or Skip. All three live as buttons in the page the server serves. Nothing prompts in the agent's terminal.
 
 The page has no real items to show yet, since the sources that would populate `list.jsonl` (P4) don't exist. When a rebuild finds nothing pending, the page shows a placeholder instead of going blank. Asking whether to edit interests and rebuild waits on P4 and P5.
 
