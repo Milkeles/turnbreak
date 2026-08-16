@@ -74,9 +74,9 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 ### P4. Sources
 
 - [x] Define the finder interface: takes `interests.md` plus read and skip history, returns candidate items.
-- [ ] Implement the `agent` finder, which shells out to `claude -p`, `codex exec`, or `gemini -p` depending on which agent is installed.
-- [ ] Make the `agent` finder run only as a foreground command, never inside a hook, since it takes seconds and hooks block the turn.
-- [ ] Warn the user that the `agent` finder spends their tokens, before the first run, and record that they accepted.
+- [x] Implement the `agent` finder, which shells out to `claude -p`, `codex exec`, or `gemini -p` depending on which agent is installed.
+- [x] Make the `agent` finder run only as a foreground command, never inside a hook, since it takes seconds and hooks block the turn.
+- [x] Warn the user that the `agent` finder spends their tokens, before the first run, and record that they accepted.
 - [ ] Implement the `rss` finder, reading a feed list the user supplies.
 - [ ] Implement the `search` finder, using an API key the user supplies, and skip it if no key is set.
 - [ ] Add `finder` to `config.toml` with `agent` as the default, since it needs no setup beyond an agent the user already has.

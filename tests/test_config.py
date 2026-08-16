@@ -44,3 +44,10 @@ def test_save_config_escapes_special_characters_in_folder_path(tmp_path):
     original = Config(mode="folder", folder_path='C:\\docs\\"quoted"')
     save_config(original, path)
     assert load_config(path).folder_path == 'C:\\docs\\"quoted"'
+
+
+def test_save_and_load_config_round_trips_agent_finder_accepted(tmp_path):
+    path = tmp_path / "config.toml"
+    original = Config(agent_finder_accepted=True)
+    save_config(original, path)
+    assert load_config(path).agent_finder_accepted is True
