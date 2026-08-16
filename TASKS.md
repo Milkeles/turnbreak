@@ -90,18 +90,18 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 - [x] Support `.md` and `.txt` in the shell, counting words directly.
 - [x] Support `.html` in the shell, stripping tags before counting words.
 - [x] Implement article extraction returning clean text and a word count from a URL.
-- [ ] Embed PDFs inside the page shell rather than navigating the tab to them, so the buttons, title, favicon, and notification survive.
-- [ ] Add a test asserting the shell still controls the tab title while a PDF is displayed.
-- [ ] Add a PDF text extraction dependency in `sources/`, used only for the word count, never for display.
-- [ ] Fall back to showing the PDF with no read time estimate if extraction fails, rather than dropping the item.
-- [ ] State in the README which formats work, and that EPUB does not yet.
+- [x] Embed PDFs inside the page shell rather than navigating the tab to them, so the buttons, title, favicon, and notification survive.
+- [x] Add a test asserting the shell still controls the tab title while a PDF is displayed.
+- [x] Add a PDF text extraction dependency in `sources/`, used only for the word count, never for display.
+- [x] Fall back to showing the PDF with no read time estimate if extraction fails, rather than dropping the item.
+- [x] State in the README which formats work, and that EPUB does not yet.
 
 
 ### P5. Interests
 
 - [ ] Implement first-run onboarding, which asks for interests and writes `~/.config/turnbreak/interests.md`.
-- [ ] Implement `turnbreak interests`, which opens the file in `$EDITOR` or prompts inline when `$EDITOR` is unset.
-- [ ] Implement `turnbreak watch`, a terminal pane offering the same three actions for users who prefer the keyboard.
+- [x] Implement `turnbreak interests`, which opens the file in `$EDITOR` or prompts inline when `$EDITOR` is unset.
+- [x] Implement `turnbreak watch`, a terminal pane offering the same three actions for users who prefer the keyboard.
 - [ ] Add the `/turnbreak-interests` slash command for agents that support slash commands.
 
 ### P6. Agent support
