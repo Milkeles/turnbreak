@@ -99,10 +99,10 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 
 ### P5. Interests
 
-- [ ] Implement first-run onboarding, which asks for interests and writes `~/.config/turnbreak/interests.md`.
+- [x] Implement first-run onboarding, which asks for interests and writes `~/.config/turnbreak/interests.md`.
 - [x] Implement `turnbreak interests`, which opens the file in `$EDITOR` or prompts inline when `$EDITOR` is unset.
 - [x] Implement `turnbreak watch`, a terminal pane offering the same three actions for users who prefer the keyboard.
-- [ ] Add the `/turnbreak-interests` slash command for agents that support slash commands.
+- [x] Add the `/turnbreak-interests` slash command for agents that support slash commands.
 
 ### P6. Agent support
 
