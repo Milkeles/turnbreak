@@ -100,27 +100,70 @@ def cmd_interests() -> int:
 def cmd_watch(session_id: str | None, once: bool = False) -> int:
     """Terminal watch UI. When --once is true, print the current item and exit.
 
-    This is intentionally simple: it reads the list.jsonl from the config
-    directory and prints the first pending item. It must not prompt when
-    run inside an agent hook; watch is designed for a separate terminal.
+    Interactive mode offers simple single-character commands:
+      r - mark read
+      s - skip
+      k - keep reading (hold)
+      q - quit
+
+    The function avoids prompting when run inside an agent hook by being
+    designed for a separate terminal. Tests call it directly with mocked
+    input to exercise behavior.
     """
-    from turnbreak.core.items import load_list, select_item
+    from turnbreak.core.items import load_list, select_item, load_history
     from turnbreak.core.config import load_config
+    from turnbreak.core.actions import read_item, skip_item, keep_reading
 
     config = load_config()
-    entries = load_list()
-    entry = select_item(entries, config.target_read_minutes, config.words_per_minute)
-    if entry is None:
-        sys.stdout.write("Nothing to read right now\n")
+    sid = session_id or "watch-session"
+
+    if once:
+        entries = load_list()
+        entry = select_item(entries, config.target_read_minutes, config.words_per_minute)
+        if entry is None:
+            sys.stdout.write("Nothing to read right now\n")
+            return 0
+        item = entry.item
+        minutes = int(item.word_count / config.words_per_minute) if item.word_count else 0
+        sys.stdout.write(f"{item.title} ({item.source}) — ~{minutes} min read\n")
+        if item.pdf_data:
+            sys.stdout.write("[PDF]\n")
+        else:
+            sys.stdout.write((item.body or "")[:1000] + "\n")
         return 0
-    item = entry.item
-    minutes = int(item.word_count / config.words_per_minute) if item.word_count else 0
-    sys.stdout.write(f"{item.title} ({item.source}) — ~{minutes} min read\n")
-    if item.pdf_data:
-        sys.stdout.write("[PDF]\n")
-    else:
-        sys.stdout.write((item.body or "")[:1000] + "\n")
-    return 0
+
+    while True:
+        entries = load_list()
+        entry = select_item(entries, config.target_read_minutes, config.words_per_minute)
+        if entry is None:
+            sys.stdout.write("Nothing to read right now\n")
+            return 0
+        item = entry.item
+        minutes = int(item.word_count / config.words_per_minute) if item.word_count else 0
+        sys.stdout.write(f"{item.title} ({item.source}) — ~{minutes} min read\n")
+        if item.pdf_data:
+            sys.stdout.write("[PDF]\n")
+        else:
+            sys.stdout.write((item.body or "")[:1000] + "\n")
+        try:
+            choice = input("[r]ead [s]kip [k]eep [q]uit: ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            sys.stdout.write("\n")
+            return 0
+        if choice == "r":
+            read_item(sid, item.locator)
+            sys.stdout.write("Marked read.\n")
+        elif choice == "s":
+            skip_item(sid, item.locator)
+            sys.stdout.write("Skipped.\n")
+        elif choice == "k":
+            keep_reading(sid)
+            sys.stdout.write("Held on this item.\n")
+            return 0
+        elif choice == "q":
+            return 0
+        else:
+            sys.stdout.write("Unknown command. Use r/s/k/q.\n")
 
 
 def build_parser() -> argparse.ArgumentParser:
