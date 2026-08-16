@@ -202,7 +202,7 @@ Never make layer 1 depend on layers 2 or 3.
 
 ### Files
 
-**Config lives at `~/.config/turnbreak/`.** `config.toml` for settings, `interests.md` for stated interests in plain text, `list.jsonl` for the current list with per-item status, `history.jsonl` for read and skipped items. Never write into the repo working tree at runtime.
+**Config lives at `~/.config/turnbreak/`.** `config.toml` for settings, `interests.md` for stated interests in plain text, `feeds.txt` for the `rss` finder's feed list, one URL per line, `list.jsonl` for the current list with per-item status, `history.jsonl` for read and skipped items. Never write into the repo working tree at runtime.
 
 **Tests must not open a browser or send a notification.** Set `TURNBREAK_NO_BROWSER=1` and `TURNBREAK_NO_NOTIFY=1`, which the test fixtures do.
 
