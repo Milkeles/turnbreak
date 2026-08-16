@@ -87,9 +87,9 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 
 ### P4b. File formats
 
-- [ ] Support `.md` and `.txt` in the shell, counting words directly.
-- [ ] Support `.html` in the shell, stripping tags before counting words.
-- [ ] Implement article extraction returning clean text and a word count from a URL.
+- [x] Support `.md` and `.txt` in the shell, counting words directly.
+- [x] Support `.html` in the shell, stripping tags before counting words.
+- [x] Implement article extraction returning clean text and a word count from a URL.
 - [ ] Embed PDFs inside the page shell rather than navigating the tab to them, so the buttons, title, favicon, and notification survive.
 - [ ] Add a test asserting the shell still controls the tab title while a PDF is displayed.
 - [ ] Add a PDF text extraction dependency in `sources/`, used only for the word count, never for display.

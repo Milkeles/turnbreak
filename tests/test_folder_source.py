@@ -1,3 +1,4 @@
+from turnbreak.sources import extract
 from turnbreak.sources.folder import list_folder_items
 
 
@@ -65,3 +66,20 @@ def test_list_folder_items_caches_file_text_as_body(tmp_path):
     items = list_folder_items(tmp_path)
 
     assert items[0].body == "one two three four five"
+
+
+def test_list_folder_items_strips_tags_from_html(tmp_path, monkeypatch):
+    monkeypatch.setattr(extract.trafilatura, "extract", lambda html: "one two three")
+    (tmp_path / "a.html").write_text("<html><body><p>one two three</p></body></html>")
+
+    items = list_folder_items(tmp_path)
+
+    assert items[0].body == "one two three"
+    assert items[0].word_count == 3
+
+
+def test_list_folder_items_drops_html_that_fails_to_extract(tmp_path, monkeypatch):
+    monkeypatch.setattr(extract.trafilatura, "extract", lambda html: None)
+    (tmp_path / "a.html").write_text("<html></html>")
+
+    assert list_folder_items(tmp_path) == []
