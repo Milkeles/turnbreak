@@ -106,14 +106,14 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 
 ### P6. Agent support
 
-- [ ] Write one hook script that reads JSON from stdin, writes nothing to stdout, and works unchanged across all four agents.
-- [ ] Write the Claude Code adapter registering the script in `.claude/settings.json` under a `hooks` key.
-- [ ] Write the Codex adapter registering the script in `.codex/hooks.json` with event names at the root, returning JSON on `Stop`.
-- [ ] Write the Gemini CLI adapter registering the script in `settings.json`, mapping turn start to `BeforeAgent` and turn end to `AfterAgent`.
-- [ ] Check the current Copilot hooks reference for its turn start and turn end event names, then write the Copilot adapter.
-- [ ] Write `SKILL.md` so Claude Code and Codex can install turnbreak as a skill.
-- [ ] Write `turnbreak install AGENT` to place adapter files in the right location for each agent.
-- [ ] Write a generic adapter documenting the two commands any other agent must call.
+- [x] Write one hook script that reads JSON from stdin, writes nothing to stdout, and works unchanged across all four agents.
+- [x] Write the Claude Code adapter registering the script in `.claude/settings.json` under a `hooks` key.
+- [x] Write the Codex adapter registering the script in `.codex/hooks.json` with event names at the root, returning JSON on `Stop`.
+- [x] Write the Gemini CLI adapter registering the script in `settings.json`, mapping turn start to `BeforeAgent` and turn end to `AfterAgent`.
+- [ ] Check the current Copilot hooks reference for its turn start and turn end event names, then write the Copilot adapter (template provided; verify before use).
+- [x] Write `SKILL.md` so Claude Code and Codex can install turnbreak as a skill.
+- [x] Write `turnbreak install AGENT` to place adapter files in the right location for each agent.
+- [x] Write a generic adapter documenting the two commands any other agent must call.
 
 ### P7. Positioning research
 
