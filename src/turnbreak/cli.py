@@ -113,6 +113,8 @@ def cmd_watch(session_id: str | None, once: bool = False) -> int:
     from turnbreak.core.items import load_list, select_item, load_history
     from turnbreak.core.config import load_config
     from turnbreak.core.actions import read_item, skip_item, keep_reading
+    from turnbreak.core import state as state_module
+    import time
 
     config = load_config()
     sid = session_id or "watch-session"
@@ -157,6 +159,10 @@ def cmd_watch(session_id: str | None, once: bool = False) -> int:
             skip_item(sid, item.locator)
             sys.stdout.write("Skipped.\n")
         elif choice == "k":
+            # Ensure a session state exists so the hold persists across turns.
+            current = state_module.load_state()
+            if current is None or current.session_id != sid:
+                state_module.start_turn(sid, time.time())
             keep_reading(sid)
             sys.stdout.write("Held on this item.\n")
             return 0
