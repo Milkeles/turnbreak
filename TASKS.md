@@ -48,15 +48,15 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 
 ### P2. Server and page
 
-- [ ] Implement the HTTP server bound to `127.0.0.1` only, serving one page and holding a push connection to it.
-- [ ] Add a test asserting the server refuses to bind to any address other than `127.0.0.1`.
-- [ ] Implement single-tab reuse, opening the browser on first fire and pushing later items to the same page.
-- [ ] Build the reading page showing title, source, estimated read time, body text, and three buttons.
-- [ ] Implement the done signal layer 1: tab title prefix and favicon swap, working with no permission granted.
-- [ ] Implement the done signal layer 2: Web Notification API, requesting permission once on first page load.
-- [ ] Implement the done signal layer 3: `notify-send` on Linux, `osascript` on macOS, PowerShell toast on Windows.
-- [ ] Add a test asserting layer 1 still fires when layers 2 and 3 both fail.
-- [ ] Keep the current item visible after the done signal, and never auto-clear or auto-close the page.
+- [x] Implement the HTTP server bound to `127.0.0.1` only, serving one page and holding a push connection to it.
+- [x] Add a test asserting the server refuses to bind to any address other than `127.0.0.1`.
+- [x] Implement single-tab reuse, opening the browser on first fire and pushing later items to the same page.
+- [x] Build the reading page showing title, source, estimated read time, body text, and three buttons.
+- [x] Implement the done signal layer 1: tab title prefix and favicon swap, working with no permission granted.
+- [x] Implement the done signal layer 2: Web Notification API, requesting permission once on first page load.
+- [x] Implement the done signal layer 3: `notify-send` on Linux, `osascript` on macOS, PowerShell toast on Windows.
+- [x] Add a test asserting layer 1 still fires when layers 2 and 3 both fail.
+- [x] Keep the current item visible after the done signal, and never auto-clear or auto-close the page.
 
 ### P3. Items and actions
 

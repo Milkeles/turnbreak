@@ -7,6 +7,7 @@ from collections.abc import Callable
 
 from turnbreak.core import state
 from turnbreak.core.config import load_config
+from turnbreak.core.fire import on_fire as _on_fire
 
 
 def wait_for_threshold(
@@ -33,8 +34,7 @@ def wait_for_threshold(
 
 
 def default_on_fire(session_id: str) -> None:
-    # No server exists yet (P2). This is the seam it will call into.
-    print(f"turnbreak: threshold reached for session {session_id}", file=sys.stderr)
+    _on_fire(session_id)
 
 
 def make_is_cancelled(session_id: str) -> Callable[[], bool]:

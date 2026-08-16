@@ -44,7 +44,7 @@ Type hints on every public function. Dataclasses over dicts for anything crossin
 @dataclass(frozen=True)
 class Item:
     title: str
-    locator: str          # URL, or absolute file path
+    locator: str  # URL, or absolute file path
     word_count: int
     source: Literal["curated", "folder"]
 ```

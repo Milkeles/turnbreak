@@ -37,9 +37,11 @@ Session state holds a `hold_status` field for the "Keep reading" action. Nothing
 
 ## The server
 
-**Status: not yet implemented (P2).**
+**Status: implemented.**
 
-An HTTP server bound to `127.0.0.1` only, serving one page and holding a push connection to it. The first fire opens the tab. Every later item, and the done signal, updates that same tab. Opening a second tab is a bug.
+An HTTP server bound to `127.0.0.1` only, serving one page and holding a push connection to it over Server-Sent Events. `turnbreak serve --port 7717` runs it in the foreground. The watcher's `on_fire` seam starts it as a detached process on first fire if it isn't already running, then opens the browser tab only when no tab is connected. Later items push over the same connection instead of opening a second tab.
+
+The page itself has no real items to show yet, since the sources that produce them (P4) don't exist. It renders a waiting placeholder until P3 and P4 land. The three action buttons post to `/action`, which is a stub today; see `docs/adrs/0001-stdlib-server-and-native-os-notifications.md` for why the server and notifications use no third-party dependencies.
 
 ---
 
