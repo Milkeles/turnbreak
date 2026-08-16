@@ -1,0 +1,6 @@
+{
+  "hooks": {
+    "BeforeAgent": "./scripts/turnbreak-hook.py",
+    "AfterAgent": "./scripts/turnbreak-hook.py"
+  }
+}

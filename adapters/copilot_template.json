@@ -1,0 +1,7 @@
+{
+  "note": "Verify exact Copilot hook event names against the current Copilot hooks reference before using.",
+  "hooks": [
+    { "event": "<TurnStartEvent>", "script": "./scripts/turnbreak-hook.py" },
+    { "event": "<TurnEndEvent>", "script": "./scripts/turnbreak-hook.py" }
+  ]
+}

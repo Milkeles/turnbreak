@@ -1,0 +1,6 @@
+{
+  "hooks": [
+    { "event": "UserPromptSubmit", "script": "./scripts/turnbreak-hook.py" },
+    { "event": "Stop", "script": "./scripts/turnbreak-hook.py" }
+  ]
+}
