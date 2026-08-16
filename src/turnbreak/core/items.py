@@ -18,6 +18,7 @@ class Item:
     locator: str  # URL, or absolute file path
     word_count: int
     source: ItemSource
+    body: str = ""  # cached at build time, so firing never re-fetches
 
 
 @dataclass(frozen=True)

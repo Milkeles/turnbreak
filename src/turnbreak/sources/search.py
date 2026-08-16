@@ -7,7 +7,7 @@ import urllib.request
 from collections.abc import Callable
 
 from turnbreak.core.items import Item
-from turnbreak.sources.extract import extract_word_count
+from turnbreak.sources.extract import extract_article
 from turnbreak.sources.finder import FinderContext
 
 _ENDPOINT = "https://api.search.brave.com/res/v1/web/search"
@@ -51,12 +51,12 @@ class SearchFinder:
         api_key: str | None = None,
         count: int = 5,
         searcher: Callable[[str, str, int], list[dict[str, str]]] = brave_search,
-        word_counter: Callable[[str], int | None] = extract_word_count,
+        extractor: Callable[[str], tuple[str, int] | None] = extract_article,
     ) -> None:
         self._api_key = api_key
         self._count = count
         self._searcher = searcher
-        self._word_counter = word_counter
+        self._extractor = extractor
 
     def find(self, context: FinderContext) -> list[Item]:
         api_key = self._api_key if self._api_key is not None else os.environ.get(_API_KEY_ENV)
@@ -72,10 +72,17 @@ class SearchFinder:
             if url in seen:
                 continue
             seen.add(url)
-            word_count = self._word_counter(url)
-            if word_count is None:
+            extracted = self._extractor(url)
+            if extracted is None:
                 continue
+            body, word_count = extracted
             items.append(
-                Item(title=candidate["title"], locator=url, word_count=word_count, source="curated")
+                Item(
+                    title=candidate["title"],
+                    locator=url,
+                    word_count=word_count,
+                    source="curated",
+                    body=body,
+                )
             )
         return items

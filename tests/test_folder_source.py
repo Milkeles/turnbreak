@@ -57,3 +57,11 @@ def test_list_folder_items_sets_source_to_folder(tmp_path):
 
 def test_list_folder_items_missing_directory_returns_empty(tmp_path):
     assert list_folder_items(tmp_path / "missing") == []
+
+
+def test_list_folder_items_caches_file_text_as_body(tmp_path):
+    (tmp_path / "a.md").write_text("one two three four five")
+
+    items = list_folder_items(tmp_path)
+
+    assert items[0].body == "one two three four five"
