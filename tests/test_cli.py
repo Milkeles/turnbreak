@@ -9,6 +9,7 @@ import pytest
 
 from turnbreak import cli
 from turnbreak.core import state
+from turnbreak.core.config import load_config
 
 
 class FakePopen:
@@ -124,3 +125,38 @@ def test_main_dispatches_stop():
     ended = state.load_state()
     assert ended is not None
     assert ended.turn_ended is True
+
+
+def test_cmd_mode_folder_requires_a_path():
+    exit_code = cli.cmd_mode("folder", None)
+    assert exit_code == 1
+
+
+def test_cmd_mode_folder_sets_mode_and_path():
+    exit_code = cli.cmd_mode("folder", "/home/user/reading")
+    assert exit_code == 0
+    config = load_config()
+    assert config.mode == "folder"
+    assert config.folder_path == "/home/user/reading"
+
+
+def test_cmd_mode_curated_clears_back_to_curated():
+    cli.cmd_mode("folder", "/home/user/reading")
+    exit_code = cli.cmd_mode("curated", None)
+    assert exit_code == 0
+    config = load_config()
+    assert config.mode == "curated"
+
+
+def test_cmd_mode_writes_only_json_to_stdout(capsys):
+    cli.cmd_mode("curated", None)
+    out = capsys.readouterr().out
+    lines = out.strip("\n").splitlines()
+    assert len(lines) == 1
+    assert json.loads(lines[0]) == {"ok": True, "mode": "curated"}
+
+
+def test_main_dispatches_mode():
+    exit_code = cli.main(["mode", "folder", "/home/user/reading"])
+    assert exit_code == 0
+    assert load_config().mode == "folder"

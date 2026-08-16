@@ -3,6 +3,7 @@ from turnbreak.core.items import (
     ListEntry,
     append_history,
     history_locators,
+    load_history,
     load_list,
     read_minutes,
     save_list,
@@ -34,6 +35,21 @@ def test_append_history_and_read_locators(tmp_path):
 
 def test_history_locators_missing_file_returns_empty_set(tmp_path):
     assert history_locators(tmp_path / "history.jsonl") == set()
+
+
+def test_load_history_returns_items_with_outcomes(tmp_path):
+    path = tmp_path / "history.jsonl"
+    append_history(make_item("A", locator="https://a"), "match", path)
+    append_history(make_item("B", locator="https://b"), "miss", path)
+    records = load_history(path)
+    assert records == [
+        (make_item("A", locator="https://a"), "match"),
+        (make_item("B", locator="https://b"), "miss"),
+    ]
+
+
+def test_load_history_missing_file_returns_empty_list(tmp_path):
+    assert load_history(tmp_path / "history.jsonl") == []
 
 
 def test_read_minutes_is_word_count_over_words_per_minute():

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
@@ -21,6 +22,7 @@ class Config:
     words_per_minute: int = 230
     target_read_minutes: tuple[int, int] = (2, 4)
     mode: Literal["curated", "folder"] = "curated"
+    folder_path: str | None = None
 
 
 def load_config(path: Path | None = None) -> Config:
@@ -37,4 +39,20 @@ def load_config(path: Path | None = None) -> Config:
         words_per_minute=data.get("words_per_minute", defaults.words_per_minute),
         target_read_minutes=(target[0], target[1]),
         mode=data.get("mode", defaults.mode),
+        folder_path=data.get("folder_path", defaults.folder_path),
     )
+
+
+def save_config(config: Config, path: Path | None = None) -> None:
+    path = path or config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        f"port = {config.port}",
+        f"threshold_seconds = {config.threshold_seconds}",
+        f"words_per_minute = {config.words_per_minute}",
+        f"target_read_minutes = [{config.target_read_minutes[0]}, {config.target_read_minutes[1]}]",
+        f"mode = {json.dumps(config.mode)}",
+    ]
+    if config.folder_path is not None:
+        lines.append(f"folder_path = {json.dumps(config.folder_path)}")
+    path.write_text("".join(line + "\n" for line in lines))

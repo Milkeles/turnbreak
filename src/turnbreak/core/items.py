@@ -61,16 +61,21 @@ def append_history(item: Item, outcome: HistoryOutcome, path: Path | None = None
         handle.write(json.dumps({"item": asdict(item), "outcome": outcome}) + "\n")
 
 
-def history_locators(path: Path | None = None) -> set[str]:
+def load_history(path: Path | None = None) -> list[tuple[Item, HistoryOutcome]]:
     path = path or history_path()
     if not path.exists():
-        return set()
-    locators = set()
+        return []
+    records = []
     for line in path.read_text().splitlines():
         if not line.strip():
             continue
-        locators.add(json.loads(line)["item"]["locator"])
-    return locators
+        data = json.loads(line)
+        records.append((Item(**data["item"]), data["outcome"]))
+    return records
+
+
+def history_locators(path: Path | None = None) -> set[str]:
+    return {item.locator for item, _ in load_history(path)}
 
 
 def read_minutes(item: Item, words_per_minute: int) -> float:
