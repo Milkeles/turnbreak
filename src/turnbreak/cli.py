@@ -97,6 +97,57 @@ def cmd_interests() -> int:
         return 0
 
 
+def cmd_onboard() -> int:
+    """Interactive first-run onboarding writing interests.md.
+
+    Prompts the user to enter interests one per line. Finish with an empty
+    line. If the file already exists, do nothing and return success.
+    """
+    from turnbreak.core.interests import interests_path
+
+    path = interests_path()
+    if path.exists():
+        sys.stdout.write("Interests file already exists: " + str(path) + "\n")
+        return 0
+    path.parent.mkdir(parents=True, exist_ok=True)
+    sys.stdout.write("Enter interests, one per line. Finish with an empty line:\n")
+    lines: list[str] = []
+    try:
+        while True:
+            line = input().rstrip("\n")
+            if not line:
+                break
+            lines.append(line)
+    except (EOFError, KeyboardInterrupt):
+        pass
+    path.write_text("\n".join(lines) + ("\n" if lines else ""))
+    sys.stdout.write("Wrote interests to " + str(path) + "\n")
+    return 0
+
+
+def cmd_slash() -> int:
+    """Write a simple slash command manifest to the config directory.
+
+    The manifest is a small JSON file that other tools can read to register
+    a slash command named `/turnbreak-interests` which opens the interests
+    editor.
+    """
+    from turnbreak.core.config import config_dir
+
+    manifest = {
+        "name": "/turnbreak-interests",
+        "description": "Edit your turnbreak interests",
+        "action": {"type": "open_file", "path": str(config_dir() / "interests.md")},
+    }
+    path = config_dir() / "slash_turnbreak_interests.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    import json
+
+    path.write_text(json.dumps(manifest, indent=2))
+    sys.stdout.write("Wrote slash manifest to " + str(path) + "\n")
+    return 0
+
+
 def cmd_watch(session_id: str | None, once: bool = False) -> int:
     """Terminal watch UI. When --once is true, print the current item and exit.
 
@@ -195,9 +246,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     interests = subparsers.add_parser("interests", help="Edit or show your interests file.")
 
+    onboard = subparsers.add_parser("onboard", help="Run first-run onboarding to collect interests.")
+
     watch = subparsers.add_parser("watch", help="Terminal watch UI offering the three actions.")
     watch.add_argument("--session-id", default=None)
     watch.add_argument("--once", action="store_true")
+
+    slash = subparsers.add_parser("slash", help="Write the /turnbreak-interests slash command manifest to the config directory.")
 
     return parser
 
@@ -217,8 +272,12 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_finder(parsed.name)
     if parsed.command == "interests":
         return cmd_interests()
+    if parsed.command == "onboard":
+        return cmd_onboard()
     if parsed.command == "watch":
         return cmd_watch(parsed.session_id, parsed.once)
+    if parsed.command == "slash":
+        return cmd_slash()
     return 1
 
 
