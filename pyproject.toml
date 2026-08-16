@@ -15,7 +15,7 @@ turnbreak = "turnbreak.cli:main"
 
 [project.optional-dependencies]
 dev = ["ruff", "mypy", "pytest"]
-sources = ["trafilatura", "feedparser"]
+sources = ["trafilatura", "feedparser", "pypdf"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/turnbreak"]

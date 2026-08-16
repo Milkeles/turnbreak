@@ -19,6 +19,7 @@ class Item:
     word_count: int
     source: ItemSource
     body: str = ""  # cached at build time, so firing never re-fetches
+    pdf_data: str = ""  # base64 PDF bytes, embedded in the shell instead of navigating to it
 
 
 @dataclass(frozen=True)
