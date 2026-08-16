@@ -1,0 +1,4 @@
+{
+  "UserPromptSubmit": { "script": "./scripts/turnbreak-hook.py" },
+  "Stop": { "script": "./scripts/turnbreak-hook.py" }
+}
