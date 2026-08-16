@@ -31,5 +31,9 @@ select = ["E", "F", "I", "UP"]
 python_version = "3.11"
 strict = true
 
+[[tool.mypy.overrides]]
+module = "feedparser"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
