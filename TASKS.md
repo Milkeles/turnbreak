@@ -78,7 +78,7 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 - [x] Make the `agent` finder run only as a foreground command, never inside a hook, since it takes seconds and hooks block the turn.
 - [x] Warn the user that the `agent` finder spends their tokens, before the first run, and record that they accepted.
 - [x] Implement the `rss` finder, reading a feed list the user supplies.
-- [ ] Implement the `search` finder, using an API key the user supplies, and skip it if no key is set.
+- [x] Implement the `search` finder, using an API key the user supplies, and skip it if no key is set.
 - [ ] Add `finder` to `config.toml` with `agent` as the default, since it needs no setup beyond an agent the user already has.
 - [ ] Implement `turnbreak finder NAME` to switch finders.
 - [ ] Feed read and skip history into every finder, so each rebuild improves on the last.

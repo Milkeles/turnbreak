@@ -47,7 +47,7 @@ The page itself has no real items to show yet, since the sources that produce th
 
 ## The two sources
 
-**Status: folder and the finder interface implemented. The `agent` and `rss` finders are implemented but not yet wired to a command. `search` is not yet implemented (P4).**
+**Status: folder, the finder interface, and all three finders (`agent`, `rss`, `search`) are implemented but not yet wired to a command (P4).**
 
 `curated`: a finder (`agent`, `rss`, or `search`) turns `interests.md` plus read and skip history into candidate items. `folder`: the user names a directory and its files become the list. Both produce the same `Item` dataclass and feed the same three actions.
 
@@ -58,6 +58,8 @@ A `Finder` is a `Protocol` with one method, `find(context) -> list[Item]`, so `a
 The `agent` finder shells out to whichever of `claude -p`, `codex exec`, or `gemini -p` is installed, asking it for a JSON array of `{title, url}` candidates. It never asks the agent to estimate a word count, since read time must stay arithmetic. Instead it fetches each URL and extracts real article text with `trafilatura`, dropping any candidate that fails to extract rather than guessing. Because it spends the user's tokens on every call, `confirm_token_spend()` gates the first run behind a prompt and records acceptance in `config.toml`, and nothing in `core/` or the hook path calls it. It only runs as an explicit foreground command, once one exists to call it (P4, tracked separately from the finder itself).
 
 The `rss` finder reads a feed list the user maintains at `~/.config/turnbreak/feeds.txt`, one URL per line, and parses each with `feedparser`. Feed entries carry a title and link but no trustworthy word count either, so this finder extracts real article text with the same `trafilatura` step as the `agent` finder, dropping any entry that fails to extract.
+
+The `search` finder queries the Brave Search API with the text of `interests.md`, reading the key from `TURNBREAK_BRAVE_API_KEY`. It returns an empty list with no key set or no interests written, which is what "skip it if no key is set" means in practice: nothing breaks, that finder just contributes nothing to the list. Results go through the same `trafilatura` extraction step as the other two finders.
 
 ---
 
