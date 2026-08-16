@@ -64,6 +64,14 @@ def cmd_mode(target: Literal["curated", "folder"], folder_path: str | None) -> i
     return 0
 
 
+def cmd_finder(name: Literal["agent", "rss", "search"]) -> int:
+    config = load_config()
+    updated = replace(config, finder=name)
+    save_config(updated)
+    sys.stdout.write(json.dumps({"ok": True, "finder": updated.finder}) + "\n")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="turnbreak")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -82,6 +90,9 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument("target", choices=["curated", "folder"])
     mode.add_argument("path", nargs="?", default=None)
 
+    finder = subparsers.add_parser("finder", help="Switch which finder builds the curated list.")
+    finder.add_argument("name", choices=["agent", "rss", "search"])
+
     return parser
 
 
@@ -96,6 +107,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_serve(parsed.port)
     if parsed.command == "mode":
         return cmd_mode(parsed.target, parsed.path)
+    if parsed.command == "finder":
+        return cmd_finder(parsed.name)
     return 1
 
 

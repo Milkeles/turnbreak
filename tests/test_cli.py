@@ -160,3 +160,28 @@ def test_main_dispatches_mode():
     exit_code = cli.main(["mode", "folder", "/home/user/reading"])
     assert exit_code == 0
     assert load_config().mode == "folder"
+
+
+def test_cmd_finder_sets_finder():
+    exit_code = cli.cmd_finder("rss")
+    assert exit_code == 0
+    assert load_config().finder == "rss"
+
+
+def test_cmd_finder_writes_only_json_to_stdout(capsys):
+    cli.cmd_finder("search")
+    out = capsys.readouterr().out
+    lines = out.strip("\n").splitlines()
+    assert len(lines) == 1
+    assert json.loads(lines[0]) == {"ok": True, "finder": "search"}
+
+
+def test_main_dispatches_finder():
+    exit_code = cli.main(["finder", "rss"])
+    assert exit_code == 0
+    assert load_config().finder == "rss"
+
+
+def test_main_rejects_unknown_finder_name():
+    with pytest.raises(SystemExit):
+        cli.main(["finder", "bogus"])

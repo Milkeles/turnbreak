@@ -79,9 +79,9 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 - [x] Warn the user that the `agent` finder spends their tokens, before the first run, and record that they accepted.
 - [x] Implement the `rss` finder, reading a feed list the user supplies.
 - [x] Implement the `search` finder, using an API key the user supplies, and skip it if no key is set.
-- [ ] Add `finder` to `config.toml` with `agent` as the default, since it needs no setup beyond an agent the user already has.
-- [ ] Implement `turnbreak finder NAME` to switch finders.
-- [ ] Feed read and skip history into every finder, so each rebuild improves on the last.
+- [x] Add `finder` to `config.toml` with `agent` as the default, since it needs no setup beyond an agent the user already has.
+- [x] Implement `turnbreak finder NAME` to switch finders.
+- [x] Feed read and skip history into every finder, so each rebuild improves on the last.
 - [x] Implement the folder source, listing readable files in a directory the user names.
 - [x] Implement `turnbreak mode curated` and `turnbreak mode folder PATH` to switch sources.
 
