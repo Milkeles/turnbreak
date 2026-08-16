@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import io
+
+import pypdf
 import trafilatura
 
 
@@ -34,3 +37,24 @@ def extract_html(html: str) -> tuple[str, int] | None:
     rather than fabricate a word count.
     """
     return _extract_from_html(html)
+
+
+def extract_pdf_word_count(data: bytes) -> int | None:
+    """Count words in a PDF's text layer, for the read time estimate only.
+
+    The extracted text is discarded, never cached for display, since the
+    shell embeds the PDF's own bytes instead of rendered text. Catches
+    any parse failure broadly, since a scanned PDF with no text layer and
+    a corrupt file both fail in library-specific ways we can't enumerate,
+    and either way the PDF should still display with no read time
+    estimate rather than being dropped.
+    """
+    try:
+        reader = pypdf.PdfReader(io.BytesIO(data))
+        text = "\n".join(page.extract_text() or "" for page in reader.pages)
+    except Exception:
+        return None
+    text = text.strip()
+    if not text:
+        return None
+    return len(text.split())

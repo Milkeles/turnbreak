@@ -20,6 +20,7 @@
   #meta { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
   #placeholder { color: #666; }
   #body { white-space: pre-wrap; }
+  #pdf { width: 100%; height: 70vh; border: 1px solid #ccc; }
   #actions { margin-top: 2rem; display: flex; gap: 0.75rem; }
   button { font-size: 1rem; padding: 0.5rem 1rem; cursor: pointer; }
 </style>
@@ -31,6 +32,7 @@
     Nothing to show yet. This tab updates itself once your agent has been working long enough.
   </p>
   <div id="body"></div>
+  <embed id="pdf" type="application/pdf" hidden />
   <p id="end-of-list" hidden>
     Nothing left on your list. Add more sources or wait for new items to show up.
   </p>
@@ -62,7 +64,19 @@
     document.getElementById("read-minutes").textContent = item.read_minutes
       ? " · " + item.read_minutes + " min read"
       : "";
-    document.getElementById("body").textContent = item.body || "";
+    var bodyEl = document.getElementById("body");
+    var pdfEl = document.getElementById("pdf");
+    if (item.pdf_data) {
+      bodyEl.hidden = true;
+      bodyEl.textContent = "";
+      pdfEl.hidden = false;
+      pdfEl.setAttribute("src", "data:application/pdf;base64," + item.pdf_data);
+    } else {
+      pdfEl.hidden = true;
+      pdfEl.removeAttribute("src");
+      bodyEl.hidden = false;
+      bodyEl.textContent = item.body || "";
+    }
   }
 
   function showEndOfList() {
@@ -72,7 +86,10 @@
     document.getElementById("item-title").textContent = "Nothing to read right now";
     document.getElementById("source").textContent = "";
     document.getElementById("read-minutes").textContent = "";
+    document.getElementById("body").hidden = false;
     document.getElementById("body").textContent = "";
+    document.getElementById("pdf").hidden = true;
+    document.getElementById("pdf").removeAttribute("src");
     document.getElementById("end-of-list").hidden = false;
   }
 

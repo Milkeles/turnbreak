@@ -46,3 +46,21 @@ def test_send_action_does_nothing_without_a_current_item():
     end = content.index("}", content.index("fetch(", start))
     body = content[start:end]
     assert "if (!currentItem) return;" in body
+
+
+def test_pdf_display_never_navigates_the_shell():
+    content = _read()
+    start = content.index("function showItem")
+    end = content.index("function showEndOfList", start)
+    body = content[start:end]
+    assert "location" not in body
+    assert ".src = " not in body
+    assert "data:application/pdf" in body
+
+
+def test_pdf_embed_element_exists_and_starts_hidden():
+    content = _read()
+    start = content.index('<embed id="pdf"')
+    end = content.index("/>", start)
+    tag = content[start:end]
+    assert "hidden" in tag

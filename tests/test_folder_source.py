@@ -27,7 +27,8 @@ def test_list_folder_items_skips_unsupported_formats(tmp_path):
 
     items = list_folder_items(tmp_path)
 
-    assert [item.title for item in items] == ["a"]
+    # PDFs are supported and embedded; EPUB is unsupported and skipped.
+    assert [item.title for item in items] == ["a", "b"]
 
 
 def test_list_folder_items_skips_subdirectories(tmp_path):
