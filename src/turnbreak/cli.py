@@ -8,6 +8,7 @@ import time
 
 from turnbreak.core import state
 from turnbreak.core.config import load_config
+from turnbreak.core.server import serve_forever
 from turnbreak.core.signal import push_done_signal
 
 
@@ -41,6 +42,11 @@ def cmd_stop(session_id: str) -> int:
     return 0
 
 
+def cmd_serve(port: int | None) -> int:
+    serve_forever(port if port is not None else load_config().port)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="turnbreak")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -50,6 +56,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     stop = subparsers.add_parser("stop", help="End a turn and notify the page.")
     stop.add_argument("--session-id", required=True)
+
+    serve = subparsers.add_parser("serve", help="Run the reading page server.")
+    serve.add_argument("--port", type=int, default=None)
+    serve.add_argument("--foreground", action="store_true")
 
     return parser
 
@@ -61,6 +71,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_start(parsed.session_id)
     if parsed.command == "stop":
         return cmd_stop(parsed.session_id)
+    if parsed.command == "serve":
+        return cmd_serve(parsed.port)
     return 1
 
 
