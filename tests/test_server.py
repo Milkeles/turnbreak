@@ -5,9 +5,12 @@ import inspect
 import json
 import threading
 import time
+from pathlib import Path
 
 import pytest
 
+from turnbreak.core import state
+from turnbreak.core.items import Item, ListEntry, history_locators, load_list, save_list
 from turnbreak.core.server import Broker, create_server
 
 
@@ -78,6 +81,20 @@ def test_post_item_reports_tab_present_when_client_connected(running_server):
     assert result == {"ok": True, "needs_tab": False}
 
 
+def test_post_end_reports_needs_tab_when_no_clients(running_server):
+    port = running_server.server_address[1]
+    result = _post(port, "/end", {})
+    assert result == {"ok": True, "needs_tab": True}
+
+
+def test_post_end_broadcasts_end_event(running_server):
+    port = running_server.server_address[1]
+    client = running_server.broker.subscribe()
+    _post(port, "/end", {})
+    message = client.get(timeout=1)
+    assert "event: end" in message
+
+
 def test_post_done_broadcasts_and_responds_ok(running_server):
     port = running_server.server_address[1]
     result = _post(port, "/done", {"session_id": "abc"})
@@ -102,6 +119,45 @@ def test_get_page_serves_html(running_server):
     assert response.status == 200
     assert b"<html" in body
     conn.close()
+
+
+@pytest.fixture
+def home(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    return tmp_path
+
+
+def test_post_action_read_marks_item_read(running_server, home):
+    save_list([ListEntry(Item("A", "https://a", 100, "curated"))])
+    state.start_turn("abc", 0.0)
+    port = running_server.server_address[1]
+
+    result = _post(port, "/action", {"action": "read", "session_id": "abc", "locator": "https://a"})
+
+    assert result == {"ok": True}
+    assert load_list()[0].status == "read"
+    assert history_locators() == {"https://a"}
+
+
+def test_post_action_skip_marks_item_skipped(running_server, home):
+    save_list([ListEntry(Item("A", "https://a", 100, "curated"))])
+    state.start_turn("abc", 0.0)
+    port = running_server.server_address[1]
+
+    result = _post(port, "/action", {"action": "skip", "session_id": "abc", "locator": "https://a"})
+
+    assert result == {"ok": True}
+    assert load_list()[0].status == "skipped"
+
+
+def test_post_action_keep_holds_state(running_server, home):
+    state.start_turn("abc", 0.0)
+    port = running_server.server_address[1]
+
+    result = _post(port, "/action", {"action": "keep", "session_id": "abc"})
+
+    assert result == {"ok": True}
+    assert state.load_state().hold_status == "held"
 
 
 def test_events_stream_delivers_broadcast_item(running_server):

@@ -27,11 +27,11 @@ agent hook  ->  turnbreak start/stop  ->  timer  ->  server  ->  browser tab
 
 `turnbreak start --session-id ID` runs inside a hook, so it has to return in under 50 milliseconds. It writes turn state to `~/.config/turnbreak/state.json`, then forks a detached watcher process and returns. The watcher, not the hook, does the waiting.
 
-The watcher polls real elapsed time against `threshold_seconds` from `config.toml`, default 90. It never estimates duration. When elapsed time crosses the threshold, it calls a fire hook. Today that hook only logs to stderr, because the server that would receive a real item doesn't exist yet. That call site is where P2 connects.
+The watcher polls real elapsed time against `threshold_seconds` from `config.toml`, default 90. It never estimates duration. When elapsed time crosses the threshold, it calls a fire hook, which starts the server if needed and pushes an item to the open tab.
 
-`turnbreak stop --session-id ID` marks the turn ended in state, which cancels any watcher still polling for that session. It also tries to push a done signal to `127.0.0.1:{port}`. Until the server exists, that push fails silently and the watcher's poll loop is the only thing `stop` actually needs to do.
+`turnbreak stop --session-id ID` marks the turn ended in state, which cancels any watcher still polling for that session. It also pushes a done signal to `127.0.0.1:{port}`.
 
-Session state holds a `hold_status` field for the "Keep reading" action. Nothing sets it yet. It exists now so the state file's shape doesn't change once P3 starts writing to it.
+Session state holds a `hold_status` field for the "Keep reading" action. The watcher treats a held session as cancelled, so a held item is never overwritten by a later fire. Read and Skip clear the hold when they resolve an item.
 
 ---
 
@@ -41,7 +41,7 @@ Session state holds a `hold_status` field for the "Keep reading" action. Nothing
 
 An HTTP server bound to `127.0.0.1` only, serving one page and holding a push connection to it over Server-Sent Events. `turnbreak serve --port 7717` runs it in the foreground. The watcher's `on_fire` seam starts it as a detached process on first fire if it isn't already running, then opens the browser tab only when no tab is connected. Later items push over the same connection instead of opening a second tab.
 
-The page itself has no real items to show yet, since the sources that produce them (P4) don't exist. It renders a waiting placeholder until P3 and P4 land. The three action buttons post to `/action`, which is a stub today; see `docs/adrs/0001-stdlib-server-and-native-os-notifications.md` for why the server and notifications use no third-party dependencies.
+The page itself has no real items to show yet, since the sources that produce them (P4) don't exist. It renders a waiting placeholder until P4 lands. The three action buttons post to `/action`, which resolves Read, Skip, and Keep reading against `list.jsonl` and session state. See `docs/adrs/0001-stdlib-server-and-native-os-notifications.md` for why the server and notifications use no third-party dependencies.
 
 ---
 
@@ -55,9 +55,11 @@ The page itself has no real items to show yet, since the sources that produce th
 
 ## The three actions
 
-**Status: not yet implemented (P3).**
+**Status: implemented.**
 
-Read marks an item read and records it as an interest match. Skip removes it and records a miss. Keep reading holds the item on screen and suppresses the next fire, across turns, until the reader picks Read or Skip. All three live as buttons in the page the server serves; nothing prompts in the agent's terminal.
+Read marks an item read in `list.jsonl` and records it as an interest match in `history.jsonl`. Skip marks it skipped and records a miss. Keep reading sets `hold_status` to held, which the watcher checks before every fire, so the item stays on screen across turns until the reader picks Read or Skip. All three live as buttons in the page the server serves. Nothing prompts in the agent's terminal.
+
+The page has no real items to show yet, since the sources that would populate `list.jsonl` (P4) don't exist. When a rebuild finds nothing pending, the page shows a placeholder instead of going blank. Asking whether to edit interests and rebuild waits on P4 and P5.
 
 ---
 

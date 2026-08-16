@@ -60,15 +60,15 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 
 ### P3. Items and actions
 
-- [ ] Implement `list.jsonl` holding the current list, one item per line, each with a status of pending, read, or skipped.
-- [ ] Implement `history.jsonl` holding every read and skipped item, so nothing appears twice across lists.
-- [ ] Implement read time as `word_count / words_per_minute`, with no model call anywhere in the path.
-- [ ] Implement item selection preferring items inside `target_read_minutes` and skipping items over twice the upper bound.
-- [ ] Implement the Read action, which marks the item read, records it as an interest match, and never shows it again.
-- [ ] Implement the Skip action, which removes the item from the list, records it as a miss, and never shows it again.
-- [ ] Implement the Keep reading action, which holds the current item on screen and suppresses the next fire.
-- [ ] Make the hold persist across turns until the user picks Read or Skip.
-- [ ] Add a test asserting a held item is not replaced when a new turn passes the threshold.
+- [x] Implement `list.jsonl` holding the current list, one item per line, each with a status of pending, read, or skipped.
+- [x] Implement `history.jsonl` holding every read and skipped item, so nothing appears twice across lists.
+- [x] Implement read time as `word_count / words_per_minute`, with no model call anywhere in the path.
+- [x] Implement item selection preferring items inside `target_read_minutes` and skipping items over twice the upper bound.
+- [x] Implement the Read action, which marks the item read, records it as an interest match, and never shows it again.
+- [x] Implement the Skip action, which removes the item from the list, records it as a miss, and never shows it again.
+- [x] Implement the Keep reading action, which holds the current item on screen and suppresses the next fire.
+- [x] Make the hold persist across turns until the user picks Read or Skip.
+- [x] Add a test asserting a held item is not replaced when a new turn passes the threshold.
 - [ ] Implement end-of-list handling, which asks whether to edit interests and build a new list, and never rebuilds silently.
 
 ### P4. Sources
