@@ -26,6 +26,7 @@ def list_folder_items(directory: Path) -> list[Item]:
                 locator=str(path.resolve()),
                 word_count=len(text.split()),
                 source="folder",
+                body=text,
             )
         )
     return items

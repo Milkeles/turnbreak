@@ -43,19 +43,27 @@ def test_find_queries_with_the_interests_text_and_attaches_word_counts():
         seen_queries.append(query)
         return [{"title": "A Post", "url": "https://example.com/a"}]
 
-    finder = SearchFinder(api_key="key", searcher=searcher, word_counter=lambda url: 250)
+    finder = SearchFinder(
+        api_key="key", searcher=searcher, extractor=lambda url: ("body text", 250)
+    )
     items = finder.find(_context(interests="rust"))
     assert seen_queries == ["rust"]
     assert items == [
-        Item(title="A Post", locator="https://example.com/a", word_count=250, source="curated")
+        Item(
+            title="A Post",
+            locator="https://example.com/a",
+            word_count=250,
+            source="curated",
+            body="body text",
+        )
     ]
 
 
-def test_find_drops_candidates_the_word_counter_cannot_extract():
+def test_find_drops_candidates_the_extractor_cannot_extract():
     def searcher(query, api_key, count):
         return [{"title": "A", "url": "https://example.com/a"}]
 
-    finder = SearchFinder(api_key="key", searcher=searcher, word_counter=lambda url: None)
+    finder = SearchFinder(api_key="key", searcher=searcher, extractor=lambda url: None)
     assert finder.find(_context()) == []
 
 
@@ -66,7 +74,7 @@ def test_find_skips_candidates_already_read_or_skipped():
             {"title": "New", "url": "https://example.com/new"},
         ]
 
-    finder = SearchFinder(api_key="key", searcher=searcher, word_counter=lambda url: 200)
+    finder = SearchFinder(api_key="key", searcher=searcher, extractor=lambda url: ("body", 200))
     context = _context(
         read=[Item(title="x", locator="https://example.com/read", word_count=1, source="curated")]
     )

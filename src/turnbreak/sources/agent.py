@@ -9,7 +9,7 @@ from pathlib import Path
 
 from turnbreak.core.config import Config, load_config, save_config
 from turnbreak.core.items import Item
-from turnbreak.sources.extract import extract_word_count
+from turnbreak.sources.extract import extract_article
 from turnbreak.sources.finder import FinderContext
 
 # In the order AGENTS.md lists them: claude -p, codex exec, gemini -p.
@@ -93,12 +93,12 @@ class AgentFinder:
         command: list[str] | None = None,
         count: int = 5,
         runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
-        word_counter: Callable[[str], int | None] = extract_word_count,
+        extractor: Callable[[str], tuple[str, int] | None] = extract_article,
     ) -> None:
         self._command = command
         self._count = count
         self._runner = runner
-        self._word_counter = word_counter
+        self._extractor = extractor
 
     def find(self, context: FinderContext) -> list[Item]:
         command = self._command or detect_agent_command()
@@ -120,11 +120,18 @@ class AgentFinder:
             if url in seen:
                 continue
             seen.add(url)
-            word_count = self._word_counter(url)
-            if word_count is None:
+            extracted = self._extractor(url)
+            if extracted is None:
                 continue
+            body, word_count = extracted
             items.append(
-                Item(title=candidate["title"], locator=url, word_count=word_count, source="curated")
+                Item(
+                    title=candidate["title"],
+                    locator=url,
+                    word_count=word_count,
+                    source="curated",
+                    body=body,
+                )
             )
         return items
 

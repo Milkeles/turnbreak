@@ -75,13 +75,23 @@ def test_find_parses_candidates_and_attaches_word_counts():
     finder = AgentFinder(
         command=["claude", "-p"],
         runner=runner,
-        word_counter=lambda url: 400,
+        extractor=lambda url: ("body text", 400),
     )
     items = finder.find(_context())
     assert items == [
-        Item(title="A Post", locator="https://example.com/a", word_count=400, source="curated"),
         Item(
-            title="Another Post", locator="https://example.com/b", word_count=400, source="curated"
+            title="A Post",
+            locator="https://example.com/a",
+            word_count=400,
+            source="curated",
+            body="body text",
+        ),
+        Item(
+            title="Another Post",
+            locator="https://example.com/b",
+            word_count=400,
+            source="curated",
+            body="body text",
         ),
     ]
 
@@ -94,18 +104,20 @@ def test_find_tolerates_prose_wrapped_around_the_json_array():
     def runner(*args, **kwargs):
         return _completed(payload)
 
-    finder = AgentFinder(command=["claude", "-p"], runner=runner, word_counter=lambda url: 100)
+    finder = AgentFinder(
+        command=["claude", "-p"], runner=runner, extractor=lambda url: ("body", 100)
+    )
     items = finder.find(_context())
     assert [item.locator for item in items] == ["https://example.com/a"]
 
 
-def test_find_drops_candidates_the_word_counter_cannot_extract():
+def test_find_drops_candidates_the_extractor_cannot_extract():
     payload = json.dumps([{"title": "A", "url": "https://example.com/a"}])
 
     def runner(*args, **kwargs):
         return _completed(payload)
 
-    finder = AgentFinder(command=["claude", "-p"], runner=runner, word_counter=lambda url: None)
+    finder = AgentFinder(command=["claude", "-p"], runner=runner, extractor=lambda url: None)
     assert finder.find(_context()) == []
 
 
@@ -121,7 +133,9 @@ def test_find_skips_candidates_already_read_or_skipped():
     def runner(*args, **kwargs):
         return _completed(payload)
 
-    finder = AgentFinder(command=["claude", "-p"], runner=runner, word_counter=lambda url: 200)
+    finder = AgentFinder(
+        command=["claude", "-p"], runner=runner, extractor=lambda url: ("body", 200)
+    )
     context = _context(
         read=[Item(title="x", locator="https://example.com/read", word_count=1, source="curated")],
         skipped=[

@@ -24,11 +24,19 @@ def test_find_parses_entries_and_attaches_word_counts():
         return _feed(("A Post", "https://a.example/a"))
 
     finder = RssFinder(
-        feeds=["https://a.example/feed.xml"], parser=parser, word_counter=lambda url: 300
+        feeds=["https://a.example/feed.xml"],
+        parser=parser,
+        extractor=lambda url: ("body text", 300),
     )
     items = finder.find(_context())
     assert items == [
-        Item(title="A Post", locator="https://a.example/a", word_count=300, source="curated")
+        Item(
+            title="A Post",
+            locator="https://a.example/a",
+            word_count=300,
+            source="curated",
+            body="body text",
+        )
     ]
 
 
@@ -42,7 +50,7 @@ def test_find_reads_every_configured_feed():
     finder = RssFinder(
         feeds=["https://a.example/feed.xml", "https://b.example/feed.xml"],
         parser=parser,
-        word_counter=lambda url: 100,
+        extractor=lambda url: ("body", 100),
     )
     items = finder.find(_context())
     assert calls == ["https://a.example/feed.xml", "https://b.example/feed.xml"]
@@ -63,18 +71,18 @@ def test_find_drops_entries_missing_a_link_or_title():
         )
 
     finder = RssFinder(
-        feeds=["https://a.example/feed.xml"], parser=parser, word_counter=lambda url: 100
+        feeds=["https://a.example/feed.xml"], parser=parser, extractor=lambda url: ("body", 100)
     )
     items = finder.find(_context())
     assert [item.locator for item in items] == ["https://a.example/ok"]
 
 
-def test_find_drops_candidates_the_word_counter_cannot_extract():
+def test_find_drops_candidates_the_extractor_cannot_extract():
     def parser(url):
         return _feed(("A", "https://a.example/a"))
 
     finder = RssFinder(
-        feeds=["https://a.example/feed.xml"], parser=parser, word_counter=lambda url: None
+        feeds=["https://a.example/feed.xml"], parser=parser, extractor=lambda url: None
     )
     assert finder.find(_context()) == []
 
@@ -87,7 +95,7 @@ def test_find_skips_entries_already_read_or_skipped():
         )
 
     finder = RssFinder(
-        feeds=["https://a.example/feed.xml"], parser=parser, word_counter=lambda url: 100
+        feeds=["https://a.example/feed.xml"], parser=parser, extractor=lambda url: ("body", 100)
     )
     context = _context(
         read=[Item(title="x", locator="https://a.example/read", word_count=1, source="curated")]
