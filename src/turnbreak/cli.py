@@ -5,9 +5,11 @@ import json
 import subprocess
 import sys
 import time
+from dataclasses import replace
+from typing import Literal
 
 from turnbreak.core import state
-from turnbreak.core.config import load_config
+from turnbreak.core.config import load_config, save_config
 from turnbreak.core.server import serve_forever
 from turnbreak.core.signal import push_done_signal
 
@@ -47,6 +49,21 @@ def cmd_serve(port: int | None) -> int:
     return 0
 
 
+def cmd_mode(target: Literal["curated", "folder"], folder_path: str | None) -> int:
+    if target == "folder" and not folder_path:
+        sys.stderr.write("turnbreak mode folder requires a PATH\n")
+        return 1
+    config = load_config()
+    updated = replace(
+        config,
+        mode=target,
+        folder_path=folder_path if target == "folder" else config.folder_path,
+    )
+    save_config(updated)
+    sys.stdout.write(json.dumps({"ok": True, "mode": updated.mode}) + "\n")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="turnbreak")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -61,6 +78,10 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--port", type=int, default=None)
     serve.add_argument("--foreground", action="store_true")
 
+    mode = subparsers.add_parser("mode", help="Switch between curated and folder sources.")
+    mode.add_argument("target", choices=["curated", "folder"])
+    mode.add_argument("path", nargs="?", default=None)
+
     return parser
 
 
@@ -73,6 +94,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_stop(parsed.session_id)
     if parsed.command == "serve":
         return cmd_serve(parsed.port)
+    if parsed.command == "mode":
+        return cmd_mode(parsed.target, parsed.path)
     return 1
 
 

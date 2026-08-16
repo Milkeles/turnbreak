@@ -1,4 +1,4 @@
-from turnbreak.core.config import Config, load_config
+from turnbreak.core.config import Config, load_config, save_config
 
 
 def test_load_config_missing_file_returns_defaults(tmp_path):
@@ -30,3 +30,17 @@ def test_load_config_partial_file_keeps_remaining_defaults(tmp_path):
     assert cfg.port == 9000
     assert cfg.threshold_seconds == Config().threshold_seconds
     assert cfg.mode == Config().mode
+
+
+def test_save_and_load_config_round_trips(tmp_path):
+    path = tmp_path / "config.toml"
+    original = Config(mode="folder", folder_path="/home/user/reading")
+    save_config(original, path)
+    assert load_config(path) == original
+
+
+def test_save_config_escapes_special_characters_in_folder_path(tmp_path):
+    path = tmp_path / "config.toml"
+    original = Config(mode="folder", folder_path='C:\\docs\\"quoted"')
+    save_config(original, path)
+    assert load_config(path).folder_path == 'C:\\docs\\"quoted"'
