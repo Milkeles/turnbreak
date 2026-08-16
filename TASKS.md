@@ -37,14 +37,14 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 
 ### P1. Timer and hooks
 
-- [ ] Write `docs/architecture.md` covering the timer, the server, the two sources, the three actions, and the adapter boundary.
-- [ ] Implement session state at `~/.config/turnbreak/state.json`, tracking session id, turn start time, and hold status.
-- [ ] Implement `turnbreak start --session-id ID`, which forks a detached watcher and returns in under 50 milliseconds.
-- [ ] Implement `turnbreak stop --session-id ID`, which ends the turn and pushes the done signal to any open page.
-- [ ] Add a test asserting `turnbreak start` returns in under 50 milliseconds, since a slow hook stalls the agent loop.
-- [ ] Add a test asserting no hook entry point writes anything to stdout except its final JSON object.
-- [ ] Implement the watcher, which fires an item once measured elapsed time passes the threshold, default 90 seconds.
-- [ ] Implement `config.toml` loading with defaults for `port` (7717), `threshold_seconds` (90), `words_per_minute` (230), `target_read_minutes` (2 to 4), and `mode` (`curated` or `folder`).
+- [x] Write `docs/architecture.md` covering the timer, the server, the two sources, the three actions, and the adapter boundary.
+- [x] Implement session state at `~/.config/turnbreak/state.json`, tracking session id, turn start time, and hold status.
+- [x] Implement `turnbreak start --session-id ID`, which forks a detached watcher and returns in under 50 milliseconds.
+- [x] Implement `turnbreak stop --session-id ID`, which ends the turn and pushes the done signal to any open page.
+- [x] Add a test asserting `turnbreak start` returns in under 50 milliseconds, since a slow hook stalls the agent loop.
+- [x] Add a test asserting no hook entry point writes anything to stdout except its final JSON object.
+- [x] Implement the watcher, which fires an item once measured elapsed time passes the threshold, default 90 seconds.
+- [x] Implement `config.toml` loading with defaults for `port` (7717), `threshold_seconds` (90), `words_per_minute` (230), `target_read_minutes` (2 to 4), and `mode` (`curated` or `folder`).
 
 ### P2. Server and page
 
