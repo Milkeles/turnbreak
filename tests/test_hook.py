@@ -1,7 +1,14 @@
 import json
 from pathlib import Path
+import importlib.util
 
-import scripts.turnbreak_hook as hook
+
+# Load the hook script directly by path to avoid relying on top-level
+# 'scripts' package being importable in every test environment.
+_hook_path = Path(__file__).resolve().parent.parent / "scripts" / "turnbreak-hook.py"
+_spec = importlib.util.spec_from_file_location("turnbreak_hook", str(_hook_path))
+hook = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(hook)
 
 
 def test_detect_event_start_and_end():
