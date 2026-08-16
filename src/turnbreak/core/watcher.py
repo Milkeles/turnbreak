@@ -40,7 +40,9 @@ def default_on_fire(session_id: str) -> None:
 def make_is_cancelled(session_id: str) -> Callable[[], bool]:
     def is_cancelled() -> bool:
         current = state.load_state()
-        return current is None or current.session_id != session_id or current.turn_ended
+        if current is None or current.session_id != session_id or current.turn_ended:
+            return True
+        return current.hold_status == "held"
 
     return is_cancelled
 

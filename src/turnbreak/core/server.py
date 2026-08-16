@@ -6,6 +6,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from turnbreak.core.actions import keep_reading, read_item, skip_item
 from turnbreak.core.notify import notify_native
 
 _PAGE_PATH = Path(__file__).resolve().parent.parent / "page" / "index.html"
@@ -63,6 +64,8 @@ def _make_handler(broker: Broker) -> type[BaseHTTPRequestHandler]:
                 return
             if self.path == "/item":
                 self._handle_item(payload)
+            elif self.path == "/end":
+                self._handle_end(payload)
             elif self.path == "/done":
                 self._handle_done(payload)
             elif self.path == "/action":
@@ -102,13 +105,31 @@ def _make_handler(broker: Broker) -> type[BaseHTTPRequestHandler]:
             broker.broadcast("item", payload)
             self._respond_json({"ok": True, "needs_tab": needs_tab})
 
+        def _handle_end(self, payload: dict[str, object]) -> None:
+            needs_tab = broker.client_count() == 0
+            broker.broadcast("end", {})
+            self._respond_json({"ok": True, "needs_tab": needs_tab})
+
         def _handle_done(self, payload: dict[str, object]) -> None:
             broker.broadcast("done", payload)
             notify_native()
             self._respond_json({"ok": True})
 
         def _handle_action(self, payload: dict[str, object]) -> None:
-            # Seam for P3: Read/Skip/Keep reading have no effect yet.
+            action = payload.get("action")
+            session_id = payload.get("session_id")
+            locator = payload.get("locator")
+            if action == "keep" and isinstance(session_id, str):
+                keep_reading(session_id)
+            elif (
+                action in ("read", "skip")
+                and isinstance(session_id, str)
+                and isinstance(locator, str)
+            ):
+                if action == "read":
+                    read_item(session_id, locator)
+                else:
+                    skip_item(session_id, locator)
             self._respond_json({"ok": True})
 
         def _respond_json(self, data: dict[str, object]) -> None:

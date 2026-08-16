@@ -1,3 +1,4 @@
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -96,6 +97,26 @@ def test_run_calls_on_fire_when_threshold_reached(home):
     run("abc", 0.0, on_fire=fired.append)
 
     assert fired == ["abc"]
+
+
+def test_make_is_cancelled_true_when_held(home):
+    started = state.start_turn("abc", 100.0)
+    state.save_state(replace(started, hold_status="held"))
+    is_cancelled = make_is_cancelled("abc")
+    assert is_cancelled() is True
+
+
+def test_run_does_not_call_on_fire_when_held(home):
+    config_path = home / ".config" / "turnbreak" / "config.toml"
+    config_path.parent.mkdir(parents=True)
+    config_path.write_text("threshold_seconds = 0\n")
+    started = state.start_turn("abc", 0.0)
+    state.save_state(replace(started, hold_status="held"))
+
+    fired = []
+    run("abc", 0.0, on_fire=fired.append)
+
+    assert fired == []
 
 
 def test_run_does_not_call_on_fire_when_cancelled(home):

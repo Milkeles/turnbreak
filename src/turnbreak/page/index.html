@@ -31,6 +31,9 @@
     Nothing to show yet. This tab updates itself once your agent has been working long enough.
   </p>
   <div id="body"></div>
+  <p id="end-of-list" hidden>
+    Nothing left on your list. Add more sources or wait for new items to show up.
+  </p>
   <div id="actions" hidden>
     <button id="read-btn" type="button">Read</button>
     <button id="skip-btn" type="button">Skip</button>
@@ -43,13 +46,16 @@
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E" +
     "%3Ccircle cx='8' cy='8' r='7' fill='%23d9534f'/%3E%3C/svg%3E";
   const DEFAULT_TITLE = document.title;
+  let currentItem = null;
 
   if (window.Notification && Notification.permission === "default") {
     Notification.requestPermission();
   }
 
   function showItem(item) {
+    currentItem = item;
     document.getElementById("placeholder").hidden = true;
+    document.getElementById("end-of-list").hidden = true;
     document.getElementById("actions").hidden = false;
     document.getElementById("item-title").textContent = item.title || "";
     document.getElementById("source").textContent = item.source || "";
@@ -57,6 +63,17 @@
       ? " · " + item.read_minutes + " min read"
       : "";
     document.getElementById("body").textContent = item.body || "";
+  }
+
+  function showEndOfList() {
+    currentItem = null;
+    document.getElementById("placeholder").hidden = true;
+    document.getElementById("actions").hidden = true;
+    document.getElementById("item-title").textContent = "Nothing to read right now";
+    document.getElementById("source").textContent = "";
+    document.getElementById("read-minutes").textContent = "";
+    document.getElementById("body").textContent = "";
+    document.getElementById("end-of-list").hidden = false;
   }
 
   function markDone() {
@@ -71,15 +88,23 @@
   events.addEventListener("item", function (e) {
     showItem(JSON.parse(e.data));
   });
+  events.addEventListener("end", function () {
+    showEndOfList();
+  });
   events.addEventListener("done", function () {
     markDone();
   });
 
   function sendAction(action) {
+    if (!currentItem) return;
     fetch("/action", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: action }),
+      body: JSON.stringify({
+        action: action,
+        session_id: currentItem.session_id,
+        locator: currentItem.locator,
+      }),
     });
   }
 
