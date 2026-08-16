@@ -40,6 +40,8 @@ This split exists because the core runs on every agent turn, inside a synchronou
 
 Type hints on every public function. Dataclasses over dicts for anything crossing a module boundary.
 
+**For any substantial piece of work, look for an established, well-tested library or API before writing it from scratch.** Hand-rolled code for a solved problem, like feed parsing or article extraction, is more likely to be buggy and harder to maintain than a maintained dependency. `sources/` and tests may take on third-party dependencies for this reason. Only implement from scratch once a real search turns up nothing suitable, and say why in the commit or ADR.
+
 ```python
 @dataclass(frozen=True)
 class Item:
