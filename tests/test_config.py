@@ -51,3 +51,14 @@ def test_save_and_load_config_round_trips_agent_finder_accepted(tmp_path):
     original = Config(agent_finder_accepted=True)
     save_config(original, path)
     assert load_config(path).agent_finder_accepted is True
+
+
+def test_load_config_defaults_finder_to_agent(tmp_path):
+    assert Config().finder == "agent"
+
+
+def test_save_and_load_config_round_trips_finder(tmp_path):
+    path = tmp_path / "config.toml"
+    original = Config(finder="rss")
+    save_config(original, path)
+    assert load_config(path).finder == "rss"

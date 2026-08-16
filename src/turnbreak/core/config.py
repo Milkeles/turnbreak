@@ -23,6 +23,7 @@ class Config:
     target_read_minutes: tuple[int, int] = (2, 4)
     mode: Literal["curated", "folder"] = "curated"
     folder_path: str | None = None
+    finder: Literal["agent", "rss", "search"] = "agent"
     agent_finder_accepted: bool = False
 
 
@@ -41,6 +42,7 @@ def load_config(path: Path | None = None) -> Config:
         target_read_minutes=(target[0], target[1]),
         mode=data.get("mode", defaults.mode),
         folder_path=data.get("folder_path", defaults.folder_path),
+        finder=data.get("finder", defaults.finder),
         agent_finder_accepted=data.get("agent_finder_accepted", defaults.agent_finder_accepted),
     )
 
@@ -54,6 +56,7 @@ def save_config(config: Config, path: Path | None = None) -> None:
         f"words_per_minute = {config.words_per_minute}",
         f"target_read_minutes = [{config.target_read_minutes[0]}, {config.target_read_minutes[1]}]",
         f"mode = {json.dumps(config.mode)}",
+        f"finder = {json.dumps(config.finder)}",
         f"agent_finder_accepted = {json.dumps(config.agent_finder_accepted)}",
     ]
     if config.folder_path is not None:

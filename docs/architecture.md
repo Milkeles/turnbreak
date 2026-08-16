@@ -47,13 +47,13 @@ The page itself has no real items to show yet, since the sources that produce th
 
 ## The two sources
 
-**Status: folder, the finder interface, and all three finders (`agent`, `rss`, `search`) are implemented but not yet wired to a command (P4).**
+**Status: folder, the finder interface, all three finders, and switching between them are implemented. No command yet builds a list by calling the active finder (P4).**
 
 `curated`: a finder (`agent`, `rss`, or `search`) turns `interests.md` plus read and skip history into candidate items. `folder`: the user names a directory and its files become the list. Both produce the same `Item` dataclass and feed the same three actions.
 
-`turnbreak mode curated` and `turnbreak mode folder PATH` switch which source is active, writing to `config.toml`.
+`turnbreak mode curated` and `turnbreak mode folder PATH` switch which source is active, writing to `config.toml`. `turnbreak finder NAME` switches which finder curated mode uses, defaulting to `agent` since that needs no setup beyond an agent the user already has.
 
-A `Finder` is a `Protocol` with one method, `find(context) -> list[Item]`, so `agent`, `rss`, and `search` share no code beyond the `FinderContext` they receive. `build_context()` composes that context from `interests.md` and `history.jsonl`, split into past matches and misses.
+A `Finder` is a `Protocol` with one method, `find(context) -> list[Item]`, so `agent`, `rss`, and `search` share no code beyond the `FinderContext` they receive. `build_context()` composes that context from `interests.md` and `history.jsonl`, split into past matches and misses. Every finder filters candidates against both lists before returning them, so a rebuild never resurfaces something already read or skipped.
 
 The `agent` finder shells out to whichever of `claude -p`, `codex exec`, or `gemini -p` is installed, asking it for a JSON array of `{title, url}` candidates. It never asks the agent to estimate a word count, since read time must stay arithmetic. Instead it fetches each URL and extracts real article text with `trafilatura`, dropping any candidate that fails to extract rather than guessing. Because it spends the user's tokens on every call, `confirm_token_spend()` gates the first run behind a prompt and records acceptance in `config.toml`, and nothing in `core/` or the hook path calls it. It only runs as an explicit foreground command, once one exists to call it (P4, tracked separately from the finder itself).
 
