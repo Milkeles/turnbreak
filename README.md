@@ -1,51 +1,88 @@
 # turnbreak
 
+[![CI](https://github.com/Milkeles/turnbreak/actions/workflows/ci.yml/badge.svg)](https://github.com/Milkeles/turnbreak/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Shows you something worth reading while your coding agent works.
 
-<!-- TODO before publishing: replace with the screen capture from P8 -->
-<!-- Primary demo: the agent starts working, an item appears in the browser tab, the done notification fires. Belongs here, above the fold, before any install step. See docs/positioning.md for the recording spec. -->
+```
+$ turnbreak install claude
+$ turnbreak mode folder ~/notes
+
+# the agent starts a long task...
+
+$ turnbreak watch
+http-caching (folder) — ~1 min read
+# HTTP caching, briefly
+
+Cache-Control tells a client how long a response stays fresh, in
+seconds, with max-age. ETag gives the client a fingerprint of the
+response body, so a later request can ask "has this changed?" with
+If-None-Match instead of downloading the whole thing again.
+...
+
+# ...and the agent finishes
+```
+
+That's real output from [`docs/demo.sh`](docs/demo.sh), which runs turnbreak end to end against a scratch folder. Run it yourself to see the full article body.
 
 ## Why
 
 An agent turn on a real task runs one to five minutes. That's too short to switch to something else and too long to just wait. Turnbreak points that time at something you already meant to read.
 
-It watches how long the current turn has been running. Past a threshold (90 seconds by default), it opens one browser tab and puts something in it: an article pulled from your stated interests, an RSS feed, a search, or files from a folder you name. You read it while the agent works. When you click Read, or the turn ends, it gets out of the way.
+It watches how long the current turn has been running. Past a threshold (90 seconds by default), it opens one browser tab and puts something in it. You read it while the agent works. When you click Read, or the turn ends, it gets out of the way.
 
-The server binds to `127.0.0.1` only. Your interests, your reading history, and everything it shows you stay on disk. See [`SECURITY.md`](SECURITY.md) for the exact guarantee.
+The server binds to `127.0.0.1` only. Everything it shows you stays on disk. See [`SECURITY.md`](SECURITY.md) for the exact guarantee.
 
 ## Install
 
+Turnbreak isn't on PyPI yet, so install it straight from this repository. You'll need `pipx` (`apt install pipx` on Debian and Ubuntu, `brew install pipx` on macOS) and SSH access to GitHub, since the repo is currently private.
+
 ```bash
-pipx install "turnbreak[sources]"
+pipx install "turnbreak @ git+ssh://git@github.com/Milkeles/turnbreak.git"
 turnbreak install claude   # or codex, gemini, copilot
-turnbreak onboard          # write your interests, one per line
+turnbreak mode folder ~/notes
 ```
 
-Use `pipx`. It puts the `turnbreak` command on your PATH without touching the Python packages your OS relies on. No `pipx` yet? Install it with your system package manager: `apt install pipx` on Debian and Ubuntu, `brew install pipx` on macOS. Recent Debian and Ubuntu block a plain `pip install` with an `externally-managed-environment` error. If you don't want `pipx`, use a virtual environment instead: `python3 -m venv .venv && source .venv/bin/activate && pip install "turnbreak[sources]"`.
+Point `mode folder` at any directory of `.md` or `.txt` files: notes, saved articles, a docs folder. Start your agent and work as usual. A turn that runs past the threshold opens the reading tab with something from that folder.
 
-`turnbreak install` registers the hook for the agent you name. It only needs to run once per agent. `turnbreak onboard` writes `~/.config/turnbreak/interests.md` and, if you're using the agent-driven finder, asks you to confirm it can spend tokens fetching candidates.
-
-The `sources` extra pulls in the article extraction and feed parsing that curated mode, the default, needs to turn a URL into real reading content. Skip it (`pipx install turnbreak`) only if you plan to run `turnbreak mode folder PATH` against markdown or text files and nothing else.
-
-Start your agent and work as usual. A turn that runs past the threshold opens the reading tab on its own.
+Want curated content instead of a folder, or hit an install snag? See [Curated mode](#curated-mode) and [Alternative installation](#alternative-installation) below.
 
 ## Usage
 
 | Command | What it does |
 |---|---|
 | `turnbreak install <claude\|codex\|gemini\|copilot>` | Register the turn-start/turn-stop hook for an agent |
-| `turnbreak onboard` | Write your interests file, and confirm token spend if needed |
 | `turnbreak mode curated` / `turnbreak mode folder PATH` | Read from your interests, or from a folder of files instead |
-| `turnbreak finder agent\|rss\|search` | Pick how curated mode finds candidates |
 | `turnbreak watch` | A terminal view of the same list, for working without the browser tab |
 | `turnbreak serve --port 7717` | Start the server and open the tab by hand |
 
 Read, Next, and Previous are the only actions. Read marks the item done and moves on. Next and Previous just browse, without marking anything read. Doing neither leaves the item on screen. That's the default, not a separate command.
 
+### Curated mode
+
+Curated mode pulls items from your stated interests instead of a folder: an article, an RSS entry, or a search result. Three finders decide how it finds candidates.
+
+| Finder | Needs | Cost |
+|---|---|---|
+| `agent` | Your coding agent's CLI, run headless | Tokens, billed to you |
+| `rss` | A feed list you supply | None |
+| `search` | An API key | Per query |
+
+Curated mode needs the `sources` extra for article extraction and feed parsing: `pipx install "turnbreak[sources] @ git+ssh://git@github.com/Milkeles/turnbreak.git"`.
+
+```bash
+turnbreak onboard          # write your interests, one per line
+turnbreak finder rss       # or agent, or search
+turnbreak mode curated
+```
+
+`turnbreak onboard` writes `~/.config/turnbreak/interests.md`. If you pick the `agent` finder, it also asks you to confirm it can spend tokens fetching candidates, since that finder shells out to your agent's CLI and bills you for it.
+
 ## Supported formats
 
 - Markdown (`.md`) and plain text (`.txt`): rendered in the shell and counted directly.
-- HTML (`.html`): stripped of markup and rendered. Word count uses `trafilatura` extraction.
+- HTML (`.html`): stripped of markup and rendered. Word count uses `trafilatura` extraction. Needs the `sources` extra.
 - PDF (`.pdf`): embedded into the page as base64 bytes, so the page, buttons, title, and favicon stay under turnbreak's control. `pypdf` extracts text for a read-time estimate. If extraction fails, the PDF still shows, just without an estimate.
 
 Not supported yet: EPUB. Browsers have no native EPUB renderer, and turnbreak doesn't ship one in v0.1.0.
@@ -68,6 +105,31 @@ Not supported yet: EPUB. Browsers have no native EPUB renderer, and turnbreak do
 ## How it works
 
 [`docs/architecture.md`](docs/architecture.md) covers the timer, the server, the two sources, and the adapter boundary in full. In short: a detached watcher process measures real elapsed time per turn, never a prediction, and pushes to a page over Server-Sent Events so the tab updates without a refresh.
+
+## Alternative installation
+
+<details>
+<summary>No <code>pipx</code>, a PEP 668 error, or you'd rather use a venv</summary>
+
+Recent Debian and Ubuntu block a plain `pip install` outside a virtual environment with an `externally-managed-environment` error. Use a venv instead of `pipx`:
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install "turnbreak @ git+ssh://git@github.com/Milkeles/turnbreak.git"
+```
+
+Add `[sources]` if you want curated mode or HTML/PDF support: `pip install "turnbreak[sources] @ git+ssh://git@github.com/Milkeles/turnbreak.git"`.
+</details>
+
+<details>
+<summary>Once this repo is public</summary>
+
+Drop the SSH form for the plain HTTPS one. No SSH key or GitHub auth needed:
+
+```bash
+pipx install "turnbreak @ git+https://github.com/Milkeles/turnbreak.git"
+```
+</details>
 
 ## Development
 
