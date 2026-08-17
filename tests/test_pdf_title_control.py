@@ -5,8 +5,8 @@ PAGE = Path(__file__).resolve().parent.parent / "src" / "turnbreak" / "page" / "
 
 def test_pdf_embed_and_mark_done_independent():
     content = PAGE.read_text()
-    # Ensure the PDF embed logic writes a data:application/pdf src
-    assert 'data:application/pdf' in content
+    # Ensure the PDF embed logic points at the /pdf streaming endpoint
+    assert "/pdf?locator=" in content
     # Ensure markDone sets the document title and favicon regardless of Notification
     start = content.index("function markDone")
     guard = content.index("if (window.Notification", start)

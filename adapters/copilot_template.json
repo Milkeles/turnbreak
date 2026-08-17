@@ -1,5 +1,0 @@
-{
-  "note": "Use Copilot CLI extensions rather than raw hook events. Copy adapters/copilot_extension to ~/.copilot/extensions/turnbreak/ and customize extension.mjs. See adapters/copilot_extension/README.md for details.",
-  "extension_template": "adapters/copilot_extension/",
-  "verify": "Verify the extension works by starting Copilot CLI with --experimental and running /turnbreak-interests"
-}

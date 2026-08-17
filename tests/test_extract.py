@@ -54,13 +54,15 @@ class _FakeReader:
 
 
 def test_extract_pdf_word_count_counts_words_in_the_text_layer(monkeypatch):
-    monkeypatch.setattr(extract, "pypdf", type("M", (), {"PdfReader": _FakeReader([_FakePage("one two three")])})())
+    reader = _FakeReader([_FakePage("one two three")])
+    monkeypatch.setattr(extract, "pypdf", type("M", (), {"PdfReader": reader})())
 
     assert extract.extract_pdf_word_count(b"fake pdf bytes") == 3
 
 
 def test_extract_pdf_word_count_returns_none_for_a_scanned_pdf_with_no_text_layer(monkeypatch):
-    monkeypatch.setattr(extract, "pypdf", type("M", (), {"PdfReader": _FakeReader([_FakePage("")])})())
+    reader = _FakeReader([_FakePage("")])
+    monkeypatch.setattr(extract, "pypdf", type("M", (), {"PdfReader": reader})())
 
     assert extract.extract_pdf_word_count(b"fake pdf bytes") is None
 

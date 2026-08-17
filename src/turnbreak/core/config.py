@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 import tomllib
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -9,6 +11,26 @@ from typing import Literal
 
 def config_dir() -> Path:
     return Path.home() / ".config" / "turnbreak"
+
+
+def atomic_write_text(path: Path, text: str) -> None:
+    """Write text to path so readers never see a torn/partial file.
+
+    turnbreak's hook fires once per turn per agent, and several agents can
+    have overlapping turns (or the same agent's background watcher can
+    overlap a hook invocation). Concurrent plain write_text() calls to the
+    same shared state file can interleave and leave a corrupt file that
+    crashes every subsequent reader. Writing to a uniquely-named sibling
+    temp file first and renaming is atomic on POSIX, so a reader only ever
+    sees the fully-old or fully-new content.
+    """
+    tmp = path.with_name(f".{path.name}.tmp-{uuid.uuid4().hex}")
+    try:
+        tmp.write_text(text)
+        os.replace(tmp, path)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
 
 
 def config_path() -> Path:
@@ -31,8 +53,13 @@ def load_config(path: Path | None = None) -> Config:
     path = path or config_path()
     if not path.exists():
         return Config()
-    with path.open("rb") as f:
-        data = tomllib.load(f)
+    try:
+        with path.open("rb") as f:
+            data = tomllib.load(f)
+    except tomllib.TOMLDecodeError:
+        # A concurrent writer can tear this file mid-write; fall back to
+        # defaults rather than crashing whatever is reading config.
+        return Config()
     defaults = Config()
     target = data.get("target_read_minutes", list(defaults.target_read_minutes))
     return Config(
@@ -61,4 +88,4 @@ def save_config(config: Config, path: Path | None = None) -> None:
     ]
     if config.folder_path is not None:
         lines.append(f"folder_path = {json.dumps(config.folder_path)}")
-    path.write_text("".join(line + "\n" for line in lines))
+    atomic_write_text(path, "".join(line + "\n" for line in lines))
