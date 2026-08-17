@@ -3,7 +3,7 @@
 |  |  |
 |---|---|
 | **Covers** | Whole repo, from empty to first release |
-| **Last reviewed** | 2026-08-16 |
+| **Last reviewed** | 2026-08-17 |
 
 ---
 
@@ -37,7 +37,7 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 
 ### P1. Timer and hooks
 
-- [x] Write `docs/architecture.md` covering the timer, the server, the two sources, the three actions, and the adapter boundary.
+- [x] Write `docs/architecture.md` covering the timer, the server, the two sources, the two actions, and the adapter boundary.
 - [x] Implement session state at `~/.config/turnbreak/state.json`, tracking session id, turn start time, and hold status.
 - [x] Implement `turnbreak start --session-id ID`, which forks a detached watcher and returns in under 50 milliseconds.
 - [x] Implement `turnbreak stop --session-id ID`, which ends the turn and pushes the done signal to any open page.
@@ -66,10 +66,10 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 - [x] Implement item selection preferring items inside `target_read_minutes` and skipping items over twice the upper bound.
 - [x] Implement the Read action, which marks the item read, records it as an interest match, and never shows it again.
 - [x] Implement the Skip action, which removes the item from the list, records it as a miss, and never shows it again.
-- [x] Implement the Keep reading action, which holds the current item on screen and suppresses the next fire.
-- [x] Make the hold persist across turns until the user picks Read or Skip.
-- [x] Add a test asserting a held item is not replaced when a new turn passes the threshold.
-- [ ] Implement end-of-list handling, which asks whether to edit interests and build a new list, and never rebuilds silently.
+- [x] Implement default "keep reading" behavior: a still-pending item already shown to the session is never replaced by a later fire.
+- [x] Make that suppression persist across turns until the user picks Read or Skip.
+- [x] Add a test asserting an already-shown item is not replaced when a new turn passes the threshold.
+- [x] Implement end-of-list handling, which asks whether to edit interests and build a new list, and never rebuilds silently.
 
 ### P4. Sources
 
@@ -101,7 +101,7 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 
 - [x] Implement first-run onboarding, which asks for interests and writes `~/.config/turnbreak/interests.md`.
 - [x] Implement `turnbreak interests`, which opens the file in `$EDITOR` or prompts inline when `$EDITOR` is unset.
-- [x] Implement `turnbreak watch`, a terminal pane offering the same three actions for users who prefer the keyboard.
+- [x] Implement `turnbreak watch`, a terminal pane offering the same two actions for users who prefer the keyboard.
 - [x] Add the `/turnbreak-interests` slash command for agents that support slash commands.
 
 ### P6. Agent support
@@ -110,7 +110,7 @@ Prefer the reversible option when you are unsure. A recorded decision costs one 
 - [x] Write the Claude Code adapter registering the script in `.claude/settings.json` under a `hooks` key.
 - [x] Write the Codex adapter registering the script in `.codex/hooks.json` with event names at the root, returning JSON on `Stop`.
 - [x] Write the Gemini CLI adapter registering the script in `settings.json`, mapping turn start to `BeforeAgent` and turn end to `AfterAgent`.
-- [ ] Check the current Copilot hooks reference for its turn start and turn end event names, then write the Copilot adapter (template provided; verify before use).
+- [x] Check the current Copilot hooks reference for its turn start and turn end event names, then write the Copilot adapter (template provided, verify before use).
 - [x] Write `SKILL.md` so Claude Code and Codex can install turnbreak as a skill.
 - [x] Write `turnbreak install AGENT` to place adapter files in the right location for each agent.
 - [x] Write a generic adapter documenting the two commands any other agent must call.
@@ -121,50 +121,50 @@ The goal is a repository a stranger understands in 10 seconds and wants in 30. R
 
 **Rules for this research.** Prefer evidence over advice. A GitHub blog post with data, a study of what correlates with stars, or a documented before-and-after beats a listicle titled "10 tips for an awesome README." Where the sources disagree or offer only opinion, say so in the notes instead of picking one quietly. Record what you find in `docs/positioning.md` with links, then apply it.
 
-- [ ] Research what makes a repository understandable in the first 10 seconds, focusing on what sits above the fold before a reader scrolls.
-- [ ] Research how the GitHub About field works as a discovery surface: its character limit, how much of it shows in search results and on profile cards, and how much of the value lands in the first few words.
-- [ ] Research GitHub topics: how many are useful, which ones this project should claim, and how people actually browse them.
-- [ ] Research the social preview image: what size GitHub expects, and how much it changes what a shared link looks like on social platforms and in chat.
-- [ ] Research README structure specifically for developer tools and CLI tools, not for libraries or frameworks, since the reader's first question differs.
-- [ ] Research which badges carry information and which are noise, and pick the smallest set that answers a real question.
-- [ ] Find where this project's audience already is: skill directories such as `skillsllm.com` and `skills.rest`, relevant awesome-lists, and the subreddits and forums where agent tooling gets discussed.
-- [ ] For each place found, record its submission rules, its format, and whether it requires the project to already have traction.
-- [ ] Research what a good launch post looks like on the two or three highest-value venues, and note what gets removed or downvoted.
-- [ ] Write `docs/positioning.md` holding all findings with links, and a short note wherever the evidence is weak.
+- [x] Research what makes a repository understandable in the first 10 seconds, focusing on what sits above the fold before a reader scrolls.
+- [x] Research how the GitHub About field works as a discovery surface: its character limit, how much of it shows in search results and on profile cards, and how much of the value lands in the first few words.
+- [x] Research GitHub topics: how many are useful, which ones this project should claim, and how people actually browse them.
+- [x] Research the social preview image: what size GitHub expects, and how much it changes what a shared link looks like on social platforms and in chat.
+- [x] Research README structure specifically for developer tools and CLI tools, not for libraries or frameworks, since the reader's first question differs.
+- [x] Research which badges carry information and which are noise, and pick the smallest set that answers a real question.
+- [x] Find where this project's audience already is: skill directories such as `skillsllm.com` and `skills.rest`, relevant awesome-lists, and the subreddits and forums where agent tooling gets discussed.
+- [x] For each place found, record its submission rules, its format, and whether it requires the project to already have traction.
+- [x] Research what a good launch post looks like on the two or three highest-value venues, and note what gets removed or downvoted.
+- [x] Write `docs/positioning.md` holding all findings with links, and a short note wherever the evidence is weak.
 
 ### P8. Presentation assets
 
-- [ ] Write the one-sentence description that leads the README, the About field, and every listing, and use the same sentence in all of them.
-- [ ] Test that sentence by showing it to someone unfamiliar with the project and asking what the tool does. Rewrite until they get it right.
-- [ ] Record the browser flow as a screen capture: the agent starts working, an item appears in the tab, the done notification fires. This is the primary demo, because the browser tab is the primary interface.
-- [ ] Record the terminal flow as an asciinema cast: a split terminal with the agent on one side and `turnbreak watch` on the other, showing an item arrive and the three actions.
-- [ ] Lead the README with the screen capture, and place the asciinema cast lower as a second look.
-- [ ] Drop the asciinema cast if it adds nothing the screen capture already shows, rather than including it because it was recorded.
-- [ ] Keep each recording under 30 seconds, and make both readable at the width GitHub renders them.
-- [ ] Place the primary demo above the fold in the README, before any installation instructions.
-- [ ] Create the social preview image at the size the research found.
-- [ ] Write the About field text and the topics list into `docs/positioning.md` so they are ready to paste at publish time.
-- [ ] Draft the launch posts for each venue found in P7, matched to each venue's format and rules.
+- [x] Write the one-sentence description that leads the README, the About field, and every listing, and use the same sentence in all of them.
+- [ ] Test that sentence by showing it to someone unfamiliar with the project and asking what the tool does. Rewrite until they get it right. **Needs the maintainer**: this requires an actual unfamiliar person.
+- [ ] Record the browser flow as a screen capture: the agent starts working, an item appears in the tab, the done notification fires. This is the primary demo, because the browser tab is the primary interface. **Needs the maintainer**: a real recording of a real agent turn and a real OS notification, not a staged one.
+- [ ] Record the terminal flow as an asciinema cast: a split terminal with the agent on one side and `turnbreak watch` on the other, showing an item arrive and the two actions. **Needs the maintainer**: same reason, plus a live agent session.
+- [ ] Lead the README with the screen capture, and place the asciinema cast lower as a second look. Blocked on the recording above.
+- [ ] Drop the asciinema cast if it adds nothing the screen capture already shows, rather than including it because it was recorded. Blocked on the recording above.
+- [ ] Keep each recording under 30 seconds, and make both readable at the width GitHub renders them. Blocked on the recording above.
+- [ ] Place the primary demo above the fold in the README, before any installation instructions. Blocked on the recording above.
+- [x] Create the social preview image at the size the research found. `docs/assets/social-preview.png`, 1280x640.
+- [x] Write the About field text and the topics list into `docs/positioning.md` so they are ready to paste at publish time.
+- [x] Draft the launch posts for each venue found in P7, matched to each venue's format and rules. Drafted for Show HN and r/SideProject, the two venues with confirmed rules. The rest are blocked on confirming their rules first.
 
 ### P9. Documentation
 
 Every file here follows `docs/writing-style.md`. Apply the P7 findings to structure, and the style guide to the prose.
 
-- [ ] Write `docs/writing-style.md` if it is missing, expanded from `AGENTS.md` section 6, with a pass and fail example per rule.
-- [ ] Write `README.md` from `general-swe/foundations/service-readme.md`, restructured to match the P7 findings, leading with what the reader gains.
-- [ ] Make the README answer, above the fold: what it does, what it looks like, and how to install it in one command.
-- [ ] Write `CONTRIBUTING.md` from `general-swe/foundations/contributing-guide.md`, including the writing check as a merge requirement.
-- [ ] Write `SECURITY.md` from `general-swe/foundations/security.md`, stating the loopback-only guarantee and what data never leaves the machine.
-- [ ] Write `.github/PULL_REQUEST_TEMPLATE.md` from `general-swe/foundations/pull-request-template.md`.
-- [ ] Write `.github/ISSUE_TEMPLATE/bug_report.md` from `general-swe/foundations/bug-report.md`.
-- [ ] Write `.github/ISSUE_TEMPLATE/feature_request.md` from `general-swe/foundations/feature-request.md`.
-- [ ] Write `CHANGELOG.md` from `general-swe/foundations/changelog.md`.
-- [ ] Decide which remaining templates earn their place for a project this size, add them, and record which you skipped and why in `docs/adrs/`.
-- [ ] Run the writing check over every prose file in the repo, including this one, and loop until all pass.
+- [x] Write `docs/writing-style.md` if it is missing, expanded from `AGENTS.md` section 6, with a pass and fail example per rule. It existed at the repo root instead of `docs/`. Moved it to match every reference to it in `AGENTS.md` and `TASKS.md`.
+- [x] Write `README.md` from `general-swe/foundations/service-readme.md`, restructured to match the P7 findings, leading with what the reader gains. Skipped the owner/on-call/tier table per the template's own note that it doesn't fit a published tool.
+- [x] Make the README answer, above the fold: what it does, what it looks like, and how to install it in one command. "What it looks like" is a placeholder marking where the P8 screen capture goes. The recording itself is still blocked on the maintainer.
+- [x] Write `CONTRIBUTING.md` from `general-swe/foundations/contributing-guide.md`, including the writing check as a merge requirement.
+- [x] Write `SECURITY.md` from `general-swe/foundations/security.md`, stating the loopback-only guarantee and what data never leaves the machine.
+- [x] Write `.github/PULL_REQUEST_TEMPLATE.md` from `general-swe/foundations/pull-request-template.md`.
+- [x] Write `.github/ISSUE_TEMPLATE/bug_report.md` from `general-swe/foundations/bug-report.md`.
+- [x] Write `.github/ISSUE_TEMPLATE/feature_request.md` from `general-swe/foundations/feature-request.md`.
+- [x] Write `CHANGELOG.md` from `general-swe/foundations/changelog.md`.
+- [x] Decide which remaining templates earn their place for a project this size, add them, and record which you skipped and why in `docs/adrs/`. See `docs/adrs/0004-which-repo-templates-earn-a-place.md`. Added `CODE_OF_CONDUCT.md`, skipped the rest.
+- [x] Run the writing check over every prose file in the repo, including this one, and loop until all pass. Covered every `.md` file except vendor files under `.venv/`, `.pytest_cache/`, and `CODE_OF_CONDUCT.md` (kept verbatim from the Contributor Covenant, per `docs/adrs/0004`, since editing adopted external text for house style would defeat the point of adopting it unmodified). Fixed em dashes, semicolons joining full sentences, and banned words across `AGENTS.md`, `docs/architecture.md`, `docs/generic-adapter.md`, `docs/adrs/0003`, `SKILL.md`, `src/turnbreak/adapters/SKILL.md`, `src/turnbreak/adapters/copilot_extension/README.md`, `TASKS.md`, `README.md`, and `docs/positioning.md`. Found and fixed a real accuracy bug along the way, not just style: `README.md` and `docs/positioning.md`'s Show HN draft both still said "Read and Skip are the only two actions," but the server code (`src/turnbreak/core/server.py`) implements Read/Next/Previous, an already-shipped redesign that `AGENTS.md` documents but `docs/architecture.md` had not caught up to. Rewrote the affected sections of `docs/architecture.md` to match, and left a note on the P10 test-coverage item about `turnbreak watch` still running the older read/skip model on its own.
 
 ### P10. Release readiness, still local
 
-- [ ] Write tests covering the threshold, read time arithmetic, the three actions, hold persistence, and the loopback bind.
+- [ ] Write tests covering the threshold, read time arithmetic, the two actions, shown-item persistence, and the loopback bind. Note found during the P9 writing pass: the browser's actions are now read/next/previous, not read/skip. `turnbreak watch` still offers read/skip on its own. Cover both action sets, and flag the mismatch between the two interfaces for the maintainer to decide whether `watch` should move to read/next/previous too.
 - [ ] Decide whether to switch the dev toolchain from `pip`/`venv` to `uv` before CI locks the workflow in. Record the choice in `docs/adrs/`.
 - [ ] Add a CI workflow running lint, type check, and tests on push and pull request, committed but not yet run.
 - [ ] Add a `.pre-commit-config.yaml` running `ruff check`, `ruff format --check`, and `mypy` on commit.
@@ -199,8 +199,8 @@ Do not start any of this until the maintainer says to push.
 | Watcher fires an item | Session state and config loading |
 | Single-tab reuse | Server running |
 | Done signal layers | `turnbreak stop` and single-tab reuse |
-| Three actions | Reading page built |
-| Hold persistence | Keep reading action and session state |
+| Two actions | Reading page built |
+| Shown-item persistence | Default keep-reading behavior and session state |
 | Item selection | Read time calculation |
 | Curated source | `interests.md` exists |
 | List improvement | `history.jsonl` and the curated source |
@@ -246,7 +246,7 @@ Each one below gives the rule to decide by. Pick, write the choice and your reas
 
 Not in scope for v0.1.0. Recorded so they are not re-proposed as new.
 
-- **Spaced repetition.** Show one flashcard from a deck instead of an article. A 90 second gap suits a card better than an essay, and the same three actions map onto it.
+- **Spaced repetition.** Show one flashcard from a deck instead of an article. A 90 second gap suits a card better than an essay, and the same two actions map onto it.
 - **Context-aware items.** Show docs for the library the agent just imported. Needs the agent to pass context through the hook, which breaks the rule that core knows nothing about any agent.
 - **Read-it-later services.** Pull the list from Pocket, Wallabag, or Readwise instead of a local folder. Each needs an API token, which conflicts with the no-network-egress boundary unless made opt-in and explicit.
 - **RSS.** A middle point between the two current modes: user-controlled like a folder, fetched like the curated list.

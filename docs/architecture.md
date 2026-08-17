@@ -3,13 +3,13 @@
 |  |  |
 |---|---|
 | **Covers** | The shape of the system: timer, server, sources, actions, adapters |
-| **Last reviewed** | 2026-08-16 |
+| **Last reviewed** | 2026-08-17 |
 
 ---
 
 ## The shape
 
-Turnbreak has four parts. A timer measures how long the agent's turn has been running. A server holds one browser tab open and pushes items to it. Two sources produce the items. Three actions let the reader dispose of each one.
+Turnbreak has four parts. A timer measures how long the agent's turn has been running. A server holds one browser tab open and pushes items to it. Two sources produce the items. Three actions let the reader move through them.
 
 A thin adapter sits between each of the four supported agents and this core. The adapter's whole job is calling `turnbreak start` when a turn begins and `turnbreak stop` when it ends. Nothing past that line knows which agent is running.
 
@@ -27,11 +27,13 @@ agent hook  ->  turnbreak start/stop  ->  timer  ->  server  ->  browser tab
 
 `turnbreak start --session-id ID` runs inside a hook, so it has to return in under 50 milliseconds. It writes turn state to `~/.config/turnbreak/state.json`, then forks a detached watcher process and returns. The watcher, not the hook, does the waiting.
 
-The watcher polls real elapsed time against `threshold_seconds` from `config.toml`, default 90. It never estimates duration. When elapsed time crosses the threshold, it calls a fire hook, which starts the server if needed and pushes an item to the open tab.
+The watcher polls real elapsed time against `threshold_seconds` from `config.toml`, default 90. It never estimates duration. When elapsed time crosses the threshold, it calls a fire hook, which calls `ensure_tab_open` and pushes an item to the open tab.
+
+Before that polling even starts, the watcher also calls `ensure_tab_open` on its own, which starts the server if needed and opens the reading tab if no tab is connected. This runs on every turn, not only turns that cross the threshold. The tab reappears even for a short turn, and even if the reader closed it earlier.
 
 `turnbreak stop --session-id ID` marks the turn ended in state, which cancels any watcher still polling for that session. It also pushes a done signal to `127.0.0.1:{port}`.
 
-Session state holds a `hold_status` field for the "Keep reading" action. The watcher treats a held session as cancelled, so a held item is never overwritten by a later fire. Read and Skip clear the hold when they resolve an item.
+Session state holds a `shown_locator` field: the locator of the last item pushed to this session. Before pushing, `fire.py` compares the item it's about to select against `shown_locator`. If they match, the item is still pending and was already shown, so nothing new is pushed. The reader just keeps reading. Read removes the item from the pending list, so the next selection naturally differs and a new item gets pushed. Next and Previous only browse. They never touch the pending list. There is no separate hold to set or clear. Doing nothing is the default.
 
 ---
 
@@ -39,9 +41,17 @@ Session state holds a `hold_status` field for the "Keep reading" action. The wat
 
 **Status: implemented.**
 
-An HTTP server bound to `127.0.0.1` only, serving one page and holding a push connection to it over Server-Sent Events. `turnbreak serve --port 7717` runs it in the foreground. The watcher's `on_fire` seam starts it as a detached process on first fire if it isn't already running, then opens the browser tab only when no tab is connected. Later items push over the same connection instead of opening a second tab.
+An HTTP server bound to `127.0.0.1` only, serving one page and holding a push connection to it over Server-Sent Events. `turnbreak serve` starts it as a detached background process (unless one is already running), opens the reading tab, and prints its URL. `--foreground` runs it attached to the current terminal instead, and `--stop` stops a server started either way.
 
-The page itself has no real items to show yet, since the sources that produce them (P4) don't exist. It renders a waiting placeholder until P4 lands. The three action buttons post to `/action`, which resolves Read, Skip, and Keep reading against `list.jsonl` and session state. See `docs/adrs/0001-stdlib-server-and-native-os-notifications.md` for why the server and notifications use no third-party dependencies.
+`fire.py`'s `ensure_tab_open` starts the server the same way if it isn't already running, then opens the browser tab only when no tab is connected. The watcher calls it at the start of every turn, and `on_fire` calls it again right before pushing an item, so a tab the reader closed in between still comes back. `client_count` checks real live connections before either call, so a tab that's already open is left alone. Both paths go through `server_control.py`, so a server started by a turn and one started by `turnbreak serve` share the same PID file and can stop each other. Later items push over the same connection instead of opening a second tab.
+
+The page renders a waiting placeholder until the first item arrives. It then calls `GET /current` to check whether something is already showing, so that placeholder doesn't sit there needlessly.
+
+The broker itself holds no history. It only fans a broadcast out to whoever is connected at that instant. So `/current` is reconstructed from `state.json`'s `shown_locator` plus a lookup into `list.jsonl`, the same source of truth `fire.py` writes to. This is what lets a reload, a new tab, or a reconnect after the server restarted pick back up on the same item instead of going blank until the next turn fires. `item_payload()` in `items.py` shapes the item the same way for both this snapshot and the live `push_item_signal` push, so the two can't drift apart on what fields the page expects.
+
+Once the list runs dry (nothing pending, and a refill attempt finds nothing new), `fire.py` pushes an `end` event over the same connection instead of leaving the last item on screen with no explanation. The page then shows a message pointing at `turnbreak interests`, so an empty list never rebuilds silently.
+
+The three action buttons post to `/action`. Read resolves the item against `list.jsonl` and `history.jsonl`. Next and Previous only move browse position, and never touch either file. See `docs/adrs/0001-stdlib-server-and-native-os-notifications.md` for why the server and notifications use no third-party dependencies.
 
 ---
 
@@ -49,7 +59,7 @@ The page itself has no real items to show yet, since the sources that produce th
 
 **Status: folder, the finder interface, all three finders, and switching between them are implemented. No command yet builds a list by calling the active finder (P4).**
 
-`curated`: a finder (`agent`, `rss`, or `search`) turns `interests.md` plus read and skip history into candidate items. `folder`: the user names a directory and its files become the list. Both produce the same `Item` dataclass and feed the same three actions. Every `Item` carries its full body text, cached at list-build time, so a rebuild fetches or reads each item exactly once and firing an item never touches the network or disk again.
+`curated`: a finder (`agent`, `rss`, or `search`) turns `interests.md` plus read and skip history into candidate items. `folder`: the user names a directory and its files become the list. Both produce the same `Item` dataclass and feed the same three actions. Every `Item` carries its full body text, cached at list-build time, so a rebuild fetches or reads each item exactly once and firing an item never touches the network or disk again. `select_item()` in `items.py` prefers items inside `target_read_minutes`, then anything within twice that upper bound, then any remaining pending item regardless of length rather than showing nothing. That last tier exists for folder mode: a folder of whole PDFs (book chapters, papers) routinely has nothing under the twice-the-bound cutoff, and turnbreak would otherwise report the list empty despite files sitting right there.
 
 `turnbreak mode curated` and `turnbreak mode folder PATH` switch which source is active, writing to `config.toml`. `turnbreak finder NAME` switches which finder curated mode uses, defaulting to `agent` since that needs no setup beyond an agent the user already has.
 
@@ -67,9 +77,11 @@ The `search` finder queries the Brave Search API with the text of `interests.md`
 
 **Status: implemented.**
 
-Read marks an item read in `list.jsonl` and records it as an interest match in `history.jsonl`. Skip removes the item from `list.jsonl` and records a miss. Keep reading sets `hold_status` to held, which the watcher checks before every fire, so the item stays on screen across turns until the reader picks Read or Skip. All three live as buttons in the page the server serves. Nothing prompts in the agent's terminal.
+Read marks an item read in `list.jsonl` and records it as an interest match in `history.jsonl`. Next and Previous browse without touching either file. A `BrowseHistory` in `server.py` tracks position per session, so Previous can step back to whatever Next moved past. Doing nothing is the default: the item stays on screen across turns, since `fire.py` never replaces a pending item that's already been shown to the session. All three actions live as buttons in the page the server serves. Nothing prompts in the agent's terminal.
 
-The page has no real items to show yet, since the sources that would populate `list.jsonl` (P4) don't exist. When a rebuild finds nothing pending, the page shows a placeholder instead of going blank. Asking whether to edit interests and rebuild waits on P4 and P5.
+`turnbreak watch`, the terminal alternative, still offers its own read and skip commands instead of this three-action model. See the note in `TASKS.md`'s P10 section.
+
+See "The server" above for what happens when the list runs out.
 
 ---
 
