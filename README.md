@@ -16,14 +16,16 @@ The server binds to `127.0.0.1` only. Your interests, your reading history, and 
 ## Install
 
 ```bash
-pip install "turnbreak[sources]"
+pipx install "turnbreak[sources]"
 turnbreak install claude   # or codex, gemini, copilot
 turnbreak onboard          # write your interests, one per line
 ```
 
+Use `pipx`. It puts the `turnbreak` command on your PATH without touching the Python packages your OS relies on. No `pipx` yet? Install it with your system package manager: `apt install pipx` on Debian and Ubuntu, `brew install pipx` on macOS. Recent Debian and Ubuntu block a plain `pip install` with an `externally-managed-environment` error. If you don't want `pipx`, use a virtual environment instead: `python3 -m venv .venv && source .venv/bin/activate && pip install "turnbreak[sources]"`.
+
 `turnbreak install` registers the hook for the agent you name. It only needs to run once per agent. `turnbreak onboard` writes `~/.config/turnbreak/interests.md` and, if you're using the agent-driven finder, asks you to confirm it can spend tokens fetching candidates.
 
-The `sources` extra pulls in the article extraction and feed parsing that curated mode, the default, needs to turn a URL into real reading content. Skip it with a plain `pip install turnbreak` only if you plan to run `turnbreak mode folder PATH` against markdown or text files and nothing else.
+The `sources` extra pulls in the article extraction and feed parsing that curated mode, the default, needs to turn a URL into real reading content. Skip it (`pipx install turnbreak`) only if you plan to run `turnbreak mode folder PATH` against markdown or text files and nothing else.
 
 Start your agent and work as usual. A turn that runs past the threshold opens the reading tab on its own.
 
@@ -66,6 +68,17 @@ Not supported yet: EPUB. Browsers have no native EPUB renderer, and turnbreak do
 ## How it works
 
 [`docs/architecture.md`](docs/architecture.md) covers the timer, the server, the two sources, and the adapter boundary in full. In short: a detached watcher process measures real elapsed time per turn, never a prediction, and pushes to a page over Server-Sent Events so the tab updates without a refresh.
+
+## Development
+
+```bash
+uv sync --extra dev --extra sources
+uv run pre-commit install
+```
+
+`pre-commit install` wires the hooks in `.pre-commit-config.yaml` into `.git/hooks/pre-commit`, so `ruff check`, `ruff format --check`, and `mypy` all run before a commit lands. Run every hook by hand with `uv run pre-commit run --all-files`. CI runs the same hooks again on every push and pull request, so a clean commit here means a clean CI run too.
+
+See [`AGENTS.md`](AGENTS.md) for the rest of the dev commands: running a single test, linting, type checking, building.
 
 ## Contributing
 

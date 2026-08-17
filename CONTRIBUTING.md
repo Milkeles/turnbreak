@@ -10,15 +10,15 @@ Code, bug reports, documentation fixes, and answering other people's issues all 
 
 ## Reporting a bug
 
-Open an issue using the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md). Found a security vulnerability instead? Don't open an issue for it. See [`SECURITY.md`](SECURITY.md).
+Open an issue using the [bug report template](.github/ISSUE_TEMPLATE/bug_report.yml). Found a security vulnerability instead? Don't open an issue for it. See [`SECURITY.md`](SECURITY.md).
 
 ## Proposing a change
 
-Small changes can go straight to a pull request. Anything that changes behavior a user would notice, like a default, a command, or the on-disk format, should start as an issue using the [feature request template](.github/ISSUE_TEMPLATE/feature_request.md) so it gets discussed before you write code nobody ends up merging.
+Small changes can go straight to a pull request. Anything that changes behavior a user would notice, like a default, a command, or the on-disk format, should start as an issue using the [feature request template](.github/ISSUE_TEMPLATE/feature_request.yml) so it gets discussed before you write code nobody ends up merging.
 
 ## Submitting a pull request
 
-Branch naming and commit message format are in [`AGENTS.md`](AGENTS.md) section 4. Tests and lint have to pass, and a pull request should hold one change. If you're claiming a performance improvement, include numbers from an actual run, not an estimate.
+Branch naming and commit message format are in [`AGENTS.md`](AGENTS.md) section 4. Install the pre-commit hooks before your first commit, covered in the README's [Development](README.md#development) section, so lint and type errors surface before CI does. Tests and lint have to pass, and a pull request should hold one change. If you're claiming a performance improvement, include numbers from an actual run, not an estimate.
 
 ## Scope of issues and pull requests
 

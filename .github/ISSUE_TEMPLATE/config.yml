@@ -1,0 +1,10 @@
+# Blank issues stay on: CONTRIBUTING.md routes questions to the tracker, and that is the form they take.
+blank_issues_enabled: true
+
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Milkeles/turnbreak/security/advisories/new
+    about: Report it privately. Do not open a public issue for an unfixed vulnerability.
+  - name: Contribution guide
+    url: https://github.com/Milkeles/turnbreak/blob/main/CONTRIBUTING.md
+    about: Branch naming, commit format, and what a pull request needs.
