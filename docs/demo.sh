@@ -112,6 +112,7 @@ echo
 
 turnbreak start --session-id demo >/dev/null
 spinner "agent working..." 5
+note "a reading tab opens in the browser:"
 echo
 
 item_output=$(turnbreak watch --once)

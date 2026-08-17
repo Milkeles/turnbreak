@@ -6,7 +6,7 @@ Turnbreak's server binds to `127.0.0.1` only. Nothing outside your machine can r
 
 ## Reporting a vulnerability
 
-Use GitHub's private vulnerability reporting on this repository, under the Security tab. Don't open a public issue or pull request for a vulnerability. That page is for everything else.
+Use [GitHub's private vulnerability reporting](https://github.com/Milkeles/turnbreak/security/advisories/new) on this repository. Don't open a public issue or pull request for a vulnerability. That page is for everything else.
 
 ## Report contents
 

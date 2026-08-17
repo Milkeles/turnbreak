@@ -19,10 +19,10 @@ The server binds to `127.0.0.1` only. Everything it shows you stays on disk. See
 
 ## Install
 
-Turnbreak isn't on PyPI yet, so install it straight from this repository. You'll need `pipx` (`apt install pipx` on Debian and Ubuntu, `brew install pipx` on macOS) and SSH access to GitHub, since the repo is currently private.
+Turnbreak isn't on PyPI yet, so install it straight from this repository. You'll need `pipx` (`apt install pipx` on Debian and Ubuntu, `brew install pipx` on macOS).
 
 ```bash
-pipx install "turnbreak @ git+ssh://git@github.com/Milkeles/turnbreak.git"
+pipx install "turnbreak @ git+https://github.com/Milkeles/turnbreak.git"
 turnbreak install claude   # or codex, gemini, copilot
 turnbreak mode folder ~/notes
 ```
@@ -52,7 +52,7 @@ Curated mode pulls items from your stated interests instead of a folder: an arti
 | `rss` | A feed list you supply | None |
 | `search` | An API key | Per query |
 
-Curated mode needs the `sources` extra for article extraction and feed parsing: `pipx install "turnbreak[sources] @ git+ssh://git@github.com/Milkeles/turnbreak.git"`.
+Curated mode needs the `sources` extra for article extraction and feed parsing: `pipx install "turnbreak[sources] @ git+https://github.com/Milkeles/turnbreak.git"`.
 
 ```bash
 turnbreak onboard          # write your interests, one per line
@@ -98,20 +98,10 @@ Recent Debian and Ubuntu block a plain `pip install` outside a virtual environme
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
-pip install "turnbreak @ git+ssh://git@github.com/Milkeles/turnbreak.git"
+pip install "turnbreak @ git+https://github.com/Milkeles/turnbreak.git"
 ```
 
-Add `[sources]` if you want curated mode or HTML/PDF support: `pip install "turnbreak[sources] @ git+ssh://git@github.com/Milkeles/turnbreak.git"`.
-</details>
-
-<details>
-<summary>Once this repo is public</summary>
-
-Drop the SSH form for the plain HTTPS one. No SSH key or GitHub auth needed:
-
-```bash
-pipx install "turnbreak @ git+https://github.com/Milkeles/turnbreak.git"
-```
+Add `[sources]` if you want curated mode or HTML/PDF support: `pip install "turnbreak[sources] @ git+https://github.com/Milkeles/turnbreak.git"`.
 </details>
 
 ## Development
