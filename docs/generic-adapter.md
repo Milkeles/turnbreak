@@ -13,10 +13,15 @@ Claude Code
 - Schema: `hooks.<Event>` is an array of `{"matcher": "*", "hooks": [{"type": "command", "command": ..., "timeout": ...}]}`
 
 Codex
-- File: `~/.codex/config.toml` by default (hooks live under the `[hooks]`
-  table alongside the rest of Codex's config, not a standalone file)
-- Template: `src/turnbreak/adapters/codex_hooks.toml`
-- Events: `UserPromptSubmit` and `Stop`, each an array of `[[hooks.<Event>]]` tables with a `hooks` array of `{type = "command", command = ...}`
+- File: `~/.codex/hooks.json` by default. Codex CLI also accepts hooks
+  inline under a `[hooks]` table in `config.toml`, but turnbreak uses the
+  sidecar `hooks.json` file instead, so installing the hook never touches
+  the rest of Codex's config.
+- Template: `src/turnbreak/adapters/codex_hooks.json`
+- Events: `UserPromptSubmit` -> start, `Stop` -> end
+- Schema: `hooks.<Event>` is an array of `{"hooks": [{"type": "command", "command": ..., "timeout": ...}]}`.
+  Codex does not support the `matcher` field Claude Code and Gemini CLI use
+  on these two events, so the template omits it.
 
 Gemini CLI
 - File: `~/.gemini/settings.json` by default

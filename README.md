@@ -16,12 +16,14 @@ The server binds to `127.0.0.1` only. Your interests, your reading history, and 
 ## Install
 
 ```bash
-pip install turnbreak
+pip install "turnbreak[sources]"
 turnbreak install claude   # or codex, gemini, copilot
 turnbreak onboard          # write your interests, one per line
 ```
 
 `turnbreak install` registers the hook for the agent you name. It only needs to run once per agent. `turnbreak onboard` writes `~/.config/turnbreak/interests.md` and, if you're using the agent-driven finder, asks you to confirm it can spend tokens fetching candidates.
+
+The `sources` extra pulls in the article extraction and feed parsing that curated mode, the default, needs to turn a URL into real reading content. Skip it with a plain `pip install turnbreak` only if you plan to run `turnbreak mode folder PATH` against markdown or text files and nothing else.
 
 Start your agent and work as usual. A turn that runs past the threshold opens the reading tab on its own.
 
