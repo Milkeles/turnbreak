@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "userPromptSubmitted": [
+      { "type": "command", "bash": "{{HOOK_COMMAND}} --hint start", "timeoutSec": 30 }
+    ],
+    "agentStop": [
+      { "type": "command", "bash": "{{HOOK_COMMAND}} --hint end", "timeoutSec": 30 }
+    ]
+  }
+}

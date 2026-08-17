@@ -1,0 +1,9 @@
+{
+  "name": "turnbreak",
+  "version": "0.1.0",
+  "main": "extension.mjs",
+  "type": "module",
+  "description": "Turnbreak Copilot CLI extension template",
+  "author": "turnbreak",
+  "license": "MIT"
+}
