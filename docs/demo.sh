@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# Runs turnbreak end to end in a scratch environment and prints what a
-# folder-mode session looks like: install, point at a folder, a turn runs
-# long enough to fire, watch shows the item, the turn ends.
+# Runs turnbreak end to end in a scratch environment: install, point at a
+# folder, a turn runs long enough to fire, the item shows up, the turn
+# ends. Prints a condensed view (a spinner, then a boxed excerpt) rather
+# than dumping the full article, so the recording stays short.
 #
 # Safe to run from a repo checkout: it isolates HOME so it never touches
 # your real ~/.config/turnbreak, and TURNBREAK_NO_BROWSER/NO_NOTIFY keep it
 # from opening a tab or firing a desktop notification.
 #
-# To turn this into the README's terminal recording, run it through a
-# recorder that captures a real pty, from a real terminal (this script
-# alone won't work over a piped, non-tty shell):
+# To turn this into an animated recording, run it through a recorder that
+# captures a real pty, from a real terminal (this script alone won't work
+# over a piped, non-tty shell):
 #   pip install termtosvg
-#   termtosvg docs/assets/demo.svg -c "bash docs/demo.sh" -g 90x24
+#   termtosvg docs/assets/demo.svg -c "bash docs/demo.sh" -g 64x18
 
 set -euo pipefail
 
@@ -27,29 +28,6 @@ mkdir -p "$HOME/.config/turnbreak" "$HOME/notes"
 cat > "$HOME/.config/turnbreak/config.toml" <<'EOF'
 port = 7799
 threshold_seconds = 3
-EOF
-
-cat > "$HOME/notes/ownership.md" <<'EOF'
-# Ownership in Rust
-
-Every value in Rust has a single owner, and when that owner goes out of
-scope, the value is dropped. This one rule replaces both manual memory
-management and a garbage collector. No malloc, no free, no pause while a
-collector walks the heap deciding what is still reachable.
-
-Passing a value to a function moves it by default. The caller loses
-access, and the compiler enforces that at compile time: use the value
-again after the move and the build fails, not the program at runtime.
-Borrowing lets a function read or modify a value without taking
-ownership, through a reference. The compiler checks that no reference
-outlives the data it points to, and that a value is never mutated while
-another part of the program is reading it.
-
-This is what people mean when they say Rust has no data races by
-construction. The borrow checker rejects the program before it runs,
-rather than catching the race under load in production, or not catching
-it at all and shipping a bug that only shows up on one customer's
-machine under one specific timing.
 EOF
 
 cat > "$HOME/notes/http-caching.md" <<'EOF'
@@ -83,47 +61,70 @@ that has to be fresh on every visit to pick up the new asset names.
 
 Private data complicates this. Cache-Control: private tells shared
 caches, like a CDN or a corporate proxy, not to store the response at
-all, while still letting the browser cache it for that one user. Get
-this wrong in the other direction, no-store on something that could
-safely be shared, and every user pays the full cost of a request that
-a CDN could have answered from an edge node a few milliseconds away.
-
-Most caching bugs are not about the algorithm. They are about a header
-set once, for one environment, that quietly stops matching reality
-after the app changes shape underneath it. A cache that is wrong by
-being too aggressive serves stale content silently, which is worse
-than serving nothing, because nothing fails loudly and stale content
-just looks like a bug report nobody can reproduce.
-
-None of this needs a library. It is a handful of response headers, set
-correctly once per resource type, and left alone. The hard part is
-almost never the mechanism. It is remembering that the header exists
-at all when the resource it describes changes shape.
+all, while still letting the browser cache it for that one user.
 EOF
 
-say() { printf '\033[32m$\033[0m %s\n' "$1"; sleep 0.4; }
-note() { printf '\033[2m%s\033[0m\n' "$1"; sleep 0.4; }
+say() { printf '\033[32m$\033[0m %s\n' "$1"; sleep 0.3; }
+note() { printf '\033[2m%s\033[0m\n' "$1"; sleep 0.3; }
+
+spinner() {
+  local frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local msg="$1" secs="$2" i=0
+  local end=$((SECONDS + secs))
+  while [ "$SECONDS" -lt "$end" ]; do
+    i=$(( (i + 1) % ${#frames} ))
+    printf '\r\033[36m%s\033[0m %s' "${frames:$i:1}" "$msg"
+    sleep 0.1
+  done
+  printf '\r\033[32m✓\033[0m %s\n' "$msg"
+}
+
+# Renders piped lines as a bordered card. The first line becomes a bold
+# header, separated from the rest by a rule.
+box() {
+  local width=58
+  local border; border=$(printf '─%.0s' $(seq 1 "$width"))
+  printf '┌%s┐\n' "$border"
+  # Pad by character count, not printf's %-*s field width, which counts
+  # bytes: a multi-byte glyph like the em dash in turnbreak's own output
+  # otherwise throws off the right border by a column or two.
+  local first=1 pad
+  while IFS= read -r line; do
+    pad=$(( width - 2 - ${#line} ))
+    [ "$pad" -lt 0 ] && pad=0
+    if [ "$first" = 1 ]; then
+      printf '│ \033[1m%s\033[0m%*s │\n' "$line" "$pad" ""
+      printf '├%s┤\n' "$border"
+      first=0
+    else
+      printf '│ %s%*s │\n' "$line" "$pad" ""
+    fi
+  done
+  printf '└%s┘\n' "$border"
+}
 
 clear
 say "turnbreak install claude"
 turnbreak install claude >/dev/null
-sleep 1
-
 say "turnbreak mode folder ~/notes"
 turnbreak mode folder "$HOME/notes" >/dev/null
-sleep 1
 echo
-note "# the agent starts a long task..."
+
 turnbreak start --session-id demo >/dev/null
-sleep 4
+spinner "agent working..." 5
 echo
-say "turnbreak watch"
-turnbreak watch --once
-sleep 2
+
+item_output=$(turnbreak watch --once)
+title_line=$(printf '%s' "$item_output" | head -n1)
+body=$(printf '%s' "$item_output" | tail -n +2 | grep -v '^#' | sed '/^$/d' | fold -s -w 56 | head -n 5)
+{
+  printf '%s\n' "$title_line"
+  printf '%s\n' "$body"
+  printf '…\n'
+} | box
 echo
-note "# ...and the agent finishes"
+
 turnbreak stop --session-id demo >/dev/null
-sleep 1
-echo
+note "turn ended · tab title and favicon updated"
 
 turnbreak serve --port 7799 --stop >/dev/null 2>&1 || true
