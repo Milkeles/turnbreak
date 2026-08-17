@@ -2,44 +2,89 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>turnbreak</title>
 <link
   rel="icon"
   id="favicon"
   href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%234a90d9'/%3E%3C/svg%3E"
 />
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
   :root { color-scheme: light dark; }
-  body {
-    font-family: system-ui, sans-serif;
-    max-width: 40rem;
-    margin: 3rem auto;
-    padding: 0 1rem;
-    line-height: 1.5;
+  #pdf { height: 75vh; }
+  body.pdf-mode #shell {
+    max-width: none;
+    height: 100vh;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "header header" "pdf actions";
+    gap: 0.75rem;
   }
-  #meta { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
-  #placeholder { color: #666; }
-  #body { white-space: pre-wrap; }
-  #pdf { width: 100%; height: 70vh; border: 1px solid #ccc; }
-  #actions { margin-top: 2rem; display: flex; gap: 0.75rem; }
-  button { font-size: 1rem; padding: 0.5rem 1rem; cursor: pointer; }
+  body.pdf-mode #header { grid-area: header; margin-bottom: 0; }
+  body.pdf-mode #pdf { grid-area: pdf; height: 100%; min-height: 0; }
+  body.pdf-mode #actions {
+    grid-area: actions;
+    flex-direction: column;
+    align-items: stretch;
+    align-self: center;
+    margin-top: 0;
+  }
+  body.pdf-mode #actions #read-btn { margin-left: 0; }
 </style>
 </head>
-<body>
-  <div id="meta"><span id="source"></span><span id="read-minutes"></span></div>
-  <h1 id="item-title">Waiting for the first item&hellip;</h1>
-  <p id="placeholder">
-    Nothing to show yet. This tab updates itself once your agent has been working long enough.
-  </p>
-  <div id="body"></div>
-  <embed id="pdf" type="application/pdf" hidden />
-  <p id="end-of-list" hidden>
-    Nothing left on your list. Add more sources or wait for new items to show up.
-  </p>
-  <div id="actions" hidden>
-    <button id="read-btn" type="button">Read</button>
-    <button id="skip-btn" type="button">Skip</button>
-    <button id="keep-btn" type="button">Keep reading</button>
+<body class="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900 antialiased dark:from-slate-950 dark:to-slate-900 dark:text-slate-100">
+  <div id="shell" class="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-6 py-16">
+    <div id="header" class="mb-8">
+      <div id="meta" class="mb-3 flex items-center gap-2">
+        <span id="source" class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-700 empty:hidden dark:bg-blue-500/10 dark:text-blue-300"></span>
+        <span id="read-minutes" class="text-sm text-slate-500 dark:text-slate-400"></span>
+      </div>
+      <h1 id="item-title" class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Waiting for the first item&hellip;</h1>
+    </div>
+
+    <p id="placeholder" class="text-slate-500 dark:text-slate-400">
+      Nothing to show yet. This tab updates itself once your agent has been working long enough.
+    </p>
+
+    <div id="body" class="whitespace-pre-wrap text-[1.05rem] leading-relaxed text-slate-700 dark:text-slate-300"></div>
+
+    <embed id="pdf" type="application/pdf" hidden
+      class="w-full rounded-xl border border-slate-200 shadow-sm dark:border-slate-800"
+    />
+
+    <p id="end-of-list" hidden class="text-slate-500 dark:text-slate-400">
+      Nothing left on your list. Run
+      <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-300">turnbreak interests</code>
+      to edit what you want to read, then turnbreak will build a new list next time.
+    </p>
+
+    <div id="actions" hidden class="mt-10 flex flex-wrap items-center gap-3">
+      <button
+        id="prev-btn"
+        type="button"
+        class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-[0.98] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+      >
+        Previous
+      </button>
+      <button
+        id="next-btn"
+        type="button"
+        class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-[0.98] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+      >
+        Next
+      </button>
+      <button
+        id="read-btn"
+        type="button"
+        class="ml-auto rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 active:scale-[0.98]"
+      >
+        Mark read &amp; remove
+      </button>
+    </div>
   </div>
 
 <script>
@@ -49,6 +94,9 @@
     "%3Ccircle cx='8' cy='8' r='7' fill='%23d9534f'/%3E%3C/svg%3E";
   const DEFAULT_TITLE = document.title;
   let currentItem = null;
+  // Survives showEndOfList (unlike currentItem) so Previous can still
+  // step back through this session's browse history after Next runs out.
+  let lastSessionId = null;
 
   if (window.Notification && Notification.permission === "default") {
     Notification.requestPermission();
@@ -56,21 +104,25 @@
 
   function showItem(item) {
     currentItem = item;
+    lastSessionId = item.session_id || lastSessionId;
     document.getElementById("placeholder").hidden = true;
     document.getElementById("end-of-list").hidden = true;
     document.getElementById("actions").hidden = false;
+    document.getElementById("next-btn").hidden = false;
+    document.getElementById("read-btn").hidden = false;
     document.getElementById("item-title").textContent = item.title || "";
     document.getElementById("source").textContent = item.source || "";
     document.getElementById("read-minutes").textContent = item.read_minutes
-      ? " · " + item.read_minutes + " min read"
+      ? item.read_minutes + " min read"
       : "";
     var bodyEl = document.getElementById("body");
     var pdfEl = document.getElementById("pdf");
-    if (item.pdf_data) {
+    document.body.classList.toggle("pdf-mode", !!item.is_pdf);
+    if (item.is_pdf) {
       bodyEl.hidden = true;
       bodyEl.textContent = "";
       pdfEl.hidden = false;
-      pdfEl.setAttribute("src", "data:application/pdf;base64," + item.pdf_data);
+      pdfEl.setAttribute("src", "/pdf?locator=" + encodeURIComponent(item.locator));
     } else {
       pdfEl.hidden = true;
       pdfEl.removeAttribute("src");
@@ -79,10 +131,11 @@
     }
   }
 
-  function showEndOfList() {
+  function showEndOfList(sessionId) {
     currentItem = null;
+    lastSessionId = sessionId || lastSessionId;
+    document.body.classList.remove("pdf-mode");
     document.getElementById("placeholder").hidden = true;
-    document.getElementById("actions").hidden = true;
     document.getElementById("item-title").textContent = "Nothing to read right now";
     document.getElementById("source").textContent = "";
     document.getElementById("read-minutes").textContent = "";
@@ -91,6 +144,11 @@
     document.getElementById("pdf").hidden = true;
     document.getElementById("pdf").removeAttribute("src");
     document.getElementById("end-of-list").hidden = false;
+    // Nothing is on screen to advance from or mark read, but Previous
+    // can still step back through whatever this session already browsed.
+    document.getElementById("actions").hidden = !lastSessionId;
+    document.getElementById("next-btn").hidden = true;
+    document.getElementById("read-btn").hidden = true;
   }
 
   function markDone() {
@@ -100,6 +158,17 @@
       new Notification("turnbreak", { body: "Your agent finished its turn." });
     }
   }
+
+  fetch("/current")
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.status === "item") {
+        showItem(data.item);
+      } else if (data.status === "end") {
+        showEndOfList(data.session_id);
+      }
+    })
+    .catch(function () {});
 
   const events = new EventSource("/events");
   events.addEventListener("item", function (e) {
@@ -113,14 +182,14 @@
   });
 
   function sendAction(action) {
-    if (!currentItem) return;
+    if (!currentItem && !lastSessionId) return;
     fetch("/action", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: action,
-        session_id: currentItem.session_id,
-        locator: currentItem.locator,
+        session_id: currentItem ? currentItem.session_id : lastSessionId,
+        locator: currentItem ? currentItem.locator : "",
       }),
     });
   }
@@ -128,11 +197,11 @@
   document.getElementById("read-btn").addEventListener("click", function () {
     sendAction("read");
   });
-  document.getElementById("skip-btn").addEventListener("click", function () {
-    sendAction("skip");
+  document.getElementById("prev-btn").addEventListener("click", function () {
+    sendAction("previous");
   });
-  document.getElementById("keep-btn").addEventListener("click", function () {
-    sendAction("keep");
+  document.getElementById("next-btn").addEventListener("click", function () {
+    sendAction("next");
   });
 })();
 </script>

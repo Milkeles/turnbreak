@@ -1,4 +1,3 @@
-from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -94,29 +93,9 @@ def test_run_calls_on_fire_when_threshold_reached(home):
     state.start_turn("abc", 0.0)
 
     fired = []
-    run("abc", 0.0, on_fire=fired.append)
+    run("abc", 0.0, on_fire=fired.append, ensure_tab=lambda config: None)
 
     assert fired == ["abc"]
-
-
-def test_make_is_cancelled_true_when_held(home):
-    started = state.start_turn("abc", 100.0)
-    state.save_state(replace(started, hold_status="held"))
-    is_cancelled = make_is_cancelled("abc")
-    assert is_cancelled() is True
-
-
-def test_run_does_not_call_on_fire_when_held(home):
-    config_path = home / ".config" / "turnbreak" / "config.toml"
-    config_path.parent.mkdir(parents=True)
-    config_path.write_text("threshold_seconds = 0\n")
-    started = state.start_turn("abc", 0.0)
-    state.save_state(replace(started, hold_status="held"))
-
-    fired = []
-    run("abc", 0.0, on_fire=fired.append)
-
-    assert fired == []
 
 
 def test_run_does_not_call_on_fire_when_cancelled(home):
@@ -127,6 +106,35 @@ def test_run_does_not_call_on_fire_when_cancelled(home):
     state.end_turn("abc")
 
     fired = []
-    run("abc", 0.0, on_fire=fired.append)
+    run("abc", 0.0, on_fire=fired.append, ensure_tab=lambda config: None)
 
     assert fired == []
+
+
+def test_run_calls_ensure_tab_immediately_regardless_of_threshold(home):
+    """Regression test: the tab must reappear on every turn start, not
+    just turns that run long enough to fire -- so ensure_tab runs before
+    the threshold wait even begins, whether or not on_fire ever runs.
+    """
+    config_path = home / ".config" / "turnbreak" / "config.toml"
+    config_path.parent.mkdir(parents=True)
+    config_path.write_text("threshold_seconds = 1000\n")
+    state.start_turn("abc", 0.0)
+    state.end_turn("abc")
+
+    ensured = []
+    run("abc", 0.0, on_fire=lambda sid: None, ensure_tab=ensured.append)
+
+    assert len(ensured) == 1
+
+
+def test_run_passes_the_loaded_config_to_ensure_tab(home):
+    config_path = home / ".config" / "turnbreak" / "config.toml"
+    config_path.parent.mkdir(parents=True)
+    config_path.write_text("threshold_seconds = 0\nport = 9999\n")
+    state.start_turn("abc", 0.0)
+
+    ensured = []
+    run("abc", 0.0, on_fire=lambda sid: None, ensure_tab=ensured.append)
+
+    assert ensured[0].port == 9999

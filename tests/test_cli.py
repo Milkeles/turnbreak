@@ -105,6 +105,68 @@ def test_cmd_stop_pushes_done_signal(fake_push_done_signal):
     assert fake_push_done_signal == [(7717, "abc")]
 
 
+def test_cmd_serve_foreground_runs_serve_forever(monkeypatch):
+    calls = []
+    monkeypatch.setattr(cli, "serve_forever", lambda port: calls.append(port))
+
+    rc = cli.cmd_serve(1234, foreground=True)
+
+    assert rc == 0
+    assert calls == [1234]
+
+
+def test_cmd_serve_rejects_foreground_and_stop_together(capsys):
+    rc = cli.cmd_serve(None, foreground=True, stop=True)
+
+    assert rc == 2
+    assert "--foreground and --stop" in capsys.readouterr().err
+
+
+def test_cmd_serve_stop_reports_success(monkeypatch, capsys):
+    monkeypatch.setattr(cli, "stop_server", lambda: True)
+
+    rc = cli.cmd_serve(1234, stop=True)
+
+    assert rc == 0
+    assert "Stopped" in capsys.readouterr().out
+
+
+def test_cmd_serve_stop_reports_when_nothing_was_running(monkeypatch, capsys):
+    monkeypatch.setattr(cli, "stop_server", lambda: False)
+
+    rc = cli.cmd_serve(1234, stop=True)
+
+    assert rc == 1
+    assert "No running turnbreak server" in capsys.readouterr().err
+
+
+def test_cmd_serve_background_spawns_when_nothing_is_running(monkeypatch, capsys):
+    monkeypatch.setattr(cli, "client_count", lambda port: None)
+    spawn_calls = []
+    tab_calls = []
+    monkeypatch.setattr(cli, "spawn_server", lambda port: spawn_calls.append(port))
+    monkeypatch.setattr(cli, "open_reading_tab", lambda url: tab_calls.append(url))
+    monkeypatch.setattr(cli.time, "sleep", lambda seconds: None)
+
+    rc = cli.cmd_serve(1234)
+
+    assert rc == 0
+    assert spawn_calls == [1234]
+    assert tab_calls == ["http://127.0.0.1:1234/"]
+    assert capsys.readouterr().out == "http://127.0.0.1:1234/\n"
+
+
+def test_cmd_serve_background_does_not_spawn_when_already_running(monkeypatch):
+    monkeypatch.setattr(cli, "client_count", lambda port: 0)
+    spawn_calls = []
+    monkeypatch.setattr(cli, "spawn_server", lambda port: spawn_calls.append(port))
+    monkeypatch.setattr(cli, "open_reading_tab", lambda url: None)
+
+    cli.cmd_serve(1234)
+
+    assert spawn_calls == []
+
+
 def test_main_with_no_args_raises_system_exit():
     with pytest.raises(SystemExit):
         cli.main([])
@@ -138,6 +200,21 @@ def test_cmd_mode_folder_sets_mode_and_path():
     config = load_config()
     assert config.mode == "folder"
     assert config.folder_path == "/home/user/reading"
+
+
+def test_cmd_mode_folder_warns_when_path_is_not_a_directory(capsys):
+    exit_code = cli.cmd_mode("folder", "/no/such/directory")
+
+    assert exit_code == 0
+    assert "not a directory" in capsys.readouterr().err
+    assert load_config().folder_path == "/no/such/directory"
+
+
+def test_cmd_mode_folder_does_not_warn_for_a_real_directory(tmp_path, capsys):
+    exit_code = cli.cmd_mode("folder", str(tmp_path))
+
+    assert exit_code == 0
+    assert capsys.readouterr().err == ""
 
 
 def test_cmd_mode_curated_clears_back_to_curated():

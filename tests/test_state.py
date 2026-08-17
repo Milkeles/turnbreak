@@ -12,15 +12,15 @@ def test_start_turn_creates_state(tmp_path):
     assert load_state(path) == state
 
 
-def test_start_turn_preserves_hold_status_across_turns(tmp_path):
+def test_start_turn_preserves_shown_locator_across_turns(tmp_path):
     path = tmp_path / "state.json"
     start_turn("abc", 100.0, path)
-    held = replace(load_state(path), hold_status="held")
-    save_state(held, path)
+    shown = replace(load_state(path), shown_locator="https://a")
+    save_state(shown, path)
 
     next_state = start_turn("abc", 200.0, path)
 
-    assert next_state.hold_status == "held"
+    assert next_state.shown_locator == "https://a"
 
 
 def test_end_turn_marks_ended(tmp_path):
@@ -51,3 +51,15 @@ def test_end_turn_with_no_state_is_a_noop(tmp_path):
 def test_load_state_missing_file_returns_none(tmp_path):
     path = tmp_path / "state.json"
     assert load_state(path) is None
+
+
+def test_load_state_torn_file_returns_none(tmp_path):
+    path = tmp_path / "state.json"
+    path.write_text('{"session_id": "abc", "turn_st')  # cut off mid-write
+    assert load_state(path) is None
+
+
+def test_save_state_leaves_no_temp_file(tmp_path):
+    path = tmp_path / "state.json"
+    start_turn("abc", 100.0, path)
+    assert list(tmp_path.iterdir()) == [path]

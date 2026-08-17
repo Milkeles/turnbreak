@@ -9,6 +9,7 @@ description = "Shows you something worth reading while your coding agent works, 
 license = "MIT"
 requires-python = ">=3.11"
 authors = [{ name = "Hristo Hristov" }]
+dependencies = []
 
 [project.scripts]
 turnbreak = "turnbreak.cli:main"

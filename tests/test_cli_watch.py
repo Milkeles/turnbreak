@@ -1,7 +1,5 @@
 from turnbreak.cli import cmd_watch
-from turnbreak.core.items import save_list, Item, ListEntry
-from turnbreak.core.config import config_dir
-import json
+from turnbreak.core.items import Item, ListEntry, save_list
 
 
 def test_cmd_watch_once_no_list(monkeypatch, tmp_path, capsys):

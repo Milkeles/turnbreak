@@ -84,3 +84,25 @@ def test_list_folder_items_drops_html_that_fails_to_extract(tmp_path, monkeypatc
     (tmp_path / "a.html").write_text("<html></html>")
 
     assert list_folder_items(tmp_path) == []
+
+
+def test_list_folder_items_includes_large_pdfs(tmp_path):
+    """PDFs are streamed from disk by the server rather than embedded as
+    base64 at scan time, so a whole book is never dropped or capped here.
+    """
+    (tmp_path / "big.pdf").write_bytes(b"%PDF-1.4" + b"0" * 100)
+
+    items = list_folder_items(tmp_path)
+
+    assert [item.title for item in items] == ["big"]
+
+
+def test_list_folder_items_marks_pdfs_with_is_pdf(tmp_path):
+    (tmp_path / "a.pdf").write_bytes(b"%PDF-1.4")
+    (tmp_path / "b.md").write_text("one two")
+
+    items = list_folder_items(tmp_path)
+
+    by_title = {item.title: item for item in items}
+    assert by_title["a"].is_pdf is True
+    assert by_title["b"].is_pdf is False

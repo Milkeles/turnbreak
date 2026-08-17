@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import replace
 from pathlib import Path
 
-from turnbreak.core import state
 from turnbreak.core.items import (
     HistoryOutcome,
     Item,
@@ -20,10 +19,9 @@ def read_item(
     *,
     list_file: Path | None = None,
     history_file: Path | None = None,
-    state_file: Path | None = None,
 ) -> None:
-    """Mark an item read, record it as an interest match, and clear any hold."""
-    _resolve(session_id, locator, "match", list_file, history_file, state_file, remove=False)
+    """Mark an item read and record it as an interest match."""
+    _resolve(session_id, locator, "match", list_file, history_file, remove=False)
 
 
 def skip_item(
@@ -32,20 +30,9 @@ def skip_item(
     *,
     list_file: Path | None = None,
     history_file: Path | None = None,
-    state_file: Path | None = None,
 ) -> None:
-    """Remove an item from the list, record it as a miss, and clear any hold."""
-    _resolve(session_id, locator, "miss", list_file, history_file, state_file, remove=True)
-
-
-def keep_reading(session_id: str, *, state_file: Path | None = None) -> state.SessionState | None:
-    """Hold the current item on screen and suppress the next fire."""
-    current = state.load_state(state_file)
-    if current is None or current.session_id != session_id:
-        return None
-    held = replace(current, hold_status="held")
-    state.save_state(held, state_file)
-    return held
+    """Remove an item from the list and record it as a miss."""
+    _resolve(session_id, locator, "miss", list_file, history_file, remove=True)
 
 
 def _resolve(
@@ -54,7 +41,6 @@ def _resolve(
     outcome: HistoryOutcome,
     list_file: Path | None,
     history_file: Path | None,
-    state_file: Path | None,
     *,
     remove: bool,
 ) -> None:
@@ -71,7 +57,3 @@ def _resolve(
     save_list(updated, list_file)
     if resolved is not None:
         append_history(resolved, outcome, history_file)
-
-    current = state.load_state(state_file)
-    if current is not None and current.session_id == session_id and current.hold_status == "held":
-        state.save_state(replace(current, hold_status="none"), state_file)

@@ -1,8 +1,11 @@
+import json
+
 from turnbreak.core.items import (
     Item,
     ListEntry,
     append_history,
     history_locators,
+    item_payload,
     load_history,
     load_list,
     read_minutes,
@@ -24,6 +27,24 @@ def test_save_and_load_list_round_trips(tmp_path):
 
 def test_load_list_missing_file_returns_empty(tmp_path):
     assert load_list(tmp_path / "list.jsonl") == []
+
+
+def test_load_list_skips_torn_line_and_keeps_the_rest(tmp_path, capsys):
+    path = tmp_path / "list.jsonl"
+    good = ListEntry(make_item("A"), "pending")
+    good_line = json.dumps({"item": good.item.__dict__, "status": good.status})
+    torn_line = '{"item": {"title": "Torn", "locator": "x", "pdf_data": "AAAA'  # cut off mid-write
+    path.write_text(good_line + "\n" + torn_line + "\n")
+    assert load_list(path) == [good]
+    assert "corrupt" in capsys.readouterr().err
+
+
+def test_save_list_is_atomic_and_leaves_no_temp_file(tmp_path):
+    path = tmp_path / "list.jsonl"
+    entries = [ListEntry(make_item("A"), "pending")]
+    save_list(entries, path)
+    assert load_list(path) == entries
+    assert list(tmp_path.iterdir()) == [path]
 
 
 def test_append_history_and_read_locators(tmp_path):
@@ -65,10 +86,19 @@ def test_select_item_prefers_items_inside_target_range():
     assert picked == in_range
 
 
-def test_select_item_skips_items_over_twice_the_upper_bound():
+def test_select_item_falls_back_to_an_over_length_item_rather_than_nothing():
     too_long = ListEntry(make_item("TooLong", word_count=230 * 9))  # 9 min, > 2x4
     entries = [too_long]
-    assert select_item(entries, target_read_minutes=(2, 4), words_per_minute=230) is None
+    picked = select_item(entries, target_read_minutes=(2, 4), words_per_minute=230)
+    assert picked == too_long
+
+
+def test_select_item_prefers_shorter_items_over_an_over_length_one():
+    too_long = ListEntry(make_item("TooLong", word_count=230 * 9))  # 9 min, > 2x4
+    in_range = ListEntry(make_item("InRange", word_count=690))  # 3 min
+    entries = [too_long, in_range]
+    picked = select_item(entries, target_read_minutes=(2, 4), words_per_minute=230)
+    assert picked == in_range
 
 
 def test_select_item_falls_back_to_any_pending_item_within_twice_the_bound():
@@ -86,3 +116,21 @@ def test_select_item_ignores_non_pending_entries():
 
 def test_select_item_returns_none_for_empty_list():
     assert select_item([], target_read_minutes=(2, 4), words_per_minute=230) is None
+
+
+def test_item_payload_shapes_item_for_the_page():
+    item = make_item(word_count=460)
+    assert item_payload(item, "session-1", words_per_minute=230) == {
+        "session_id": "session-1",
+        "locator": item.locator,
+        "title": item.title,
+        "source": item.source,
+        "read_minutes": 2,
+        "body": item.body,
+        "is_pdf": item.is_pdf,
+    }
+
+
+def test_item_payload_zero_words_gives_zero_minutes():
+    item = make_item(word_count=0)
+    assert item_payload(item, "session-1", words_per_minute=230)["read_minutes"] == 0
