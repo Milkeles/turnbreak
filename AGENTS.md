@@ -21,7 +21,7 @@ The name is `turnbreak`, chosen 2026-08-16 over `interlude`, `idlepage`, and `wa
 
 | Task | Command |
 |---|---|
-| Install dependencies | `pip install -e ".[dev]"` |
+| Install dependencies | `uv sync --extra dev --extra sources` |
 | Run all tests | `pytest` |
 | Run a single test | `pytest tests/test_timer.py::test_fires_after_threshold -x` |
 | Lint | `ruff check .` |
