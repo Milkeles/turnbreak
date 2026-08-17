@@ -79,9 +79,9 @@ For turnbreak specifically, a Show HN post and an r/SideProject post are the two
 
 **The About field.** The sentence above, exactly as written. 67 characters, well under the 350-character limit.
 
-**Topics.** Eight, naming what the tool is and what it plugs into, inside GitHub's 20-topic ceiling and within the practitioner-opinion range of 5 to 8 noted above:
+**Topics.** Nine, naming what the tool is and what it plugs into, inside GitHub's 20-topic ceiling and just past the practitioner-opinion range of 5 to 8 noted above — `copilot-cli` was missing from the first pass despite Copilot CLI being a supported agent:
 
-`claude-code`, `codex-cli`, `gemini-cli`, `cli-tool`, `developer-tools`, `productivity`, `reading`, `rss`
+`claude-code`, `codex-cli`, `gemini-cli`, `copilot-cli`, `cli-tool`, `developer-tools`, `productivity`, `reading`, `rss`
 
 ## Launch post drafts
 
