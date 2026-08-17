@@ -1,3 +1,6 @@
+Fixes #
+<!-- Use Fixes/Closes only if merging should close the issue. Otherwise: Refs #123. -->
+
 ## Summary
 
 Why this change exists, then what it does.

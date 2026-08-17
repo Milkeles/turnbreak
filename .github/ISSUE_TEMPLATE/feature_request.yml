@@ -1,0 +1,55 @@
+name: Feature request
+description: Something you were trying to do, and turnbreak got in the way.
+title: "[Feature]: "
+labels:
+  - enhancement
+
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Title this by the problem rather than the solution, "No way to run a single
+        test file" rather than "Add a --file flag". The title is what people search,
+        and the fix may turn out to be something else.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you were trying to do, and what stopped you. A real situation, not a general capability.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What you think should happen. Hold it loosely. You're describing an outcome, not a spec.
+    validations:
+      required: false
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: What you do today instead, and what it costs you.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Screenshots, links, or how another tool handles this.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: implementation
+    attributes:
+      label: Implementation
+      description: Ticking this does not affect whether the request is accepted.
+      options:
+        - label: I would like to implement this and open a pull request.
+    validations:
+      required: false

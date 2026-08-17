@@ -1,0 +1,103 @@
+name: Bug report
+description: Something isn't working the way it should.
+title: "[Bug]: "
+labels:
+  - bug
+
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Title this by the effect you saw, not the cause you suspect. The title is
+        what people search.
+
+  - type: textarea
+    id: expected_actual
+    attributes:
+      label: Expected and actual behavior
+      placeholder: |
+        Expected:
+
+        Actual:
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Numbered, starting from a state we can reach too.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: How often does it happen when you follow those steps?
+      options:
+        - Every time
+        - Most times
+        - Occasionally
+        - Once, and not since
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: turnbreak version
+      description: Or the commit if you're on main.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options:
+        - Claude Code
+        - Codex
+        - Gemini CLI
+        - Copilot CLI
+        - Not agent-specific
+    validations:
+      required: false
+
+  - type: input
+    id: agent_version
+    attributes:
+      label: Agent version
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or output
+      description: Paste anything printed to the terminal or the browser console. If there's nothing, say so. A silent failure is itself useful information.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: A workaround, if you found one. When it started, if you know a version where it worked.
+    validations:
+      required: false
