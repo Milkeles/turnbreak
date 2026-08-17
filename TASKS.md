@@ -181,9 +181,11 @@ Every file here follows `docs/writing-style.md`. Apply the P7 findings to struct
 
 Do not start any of this until the maintainer says to push.
 
+Note: on the maintainer's explicit instruction, `github.com/Milkeles/turnbreak` was created as a **private** repository and `main` plus the `v0.1.0` tag were pushed, so the maintainer could read through the result before deciding whether to go further. This is not the same as this checklist. The repo stays private, no release was published, and nothing below was started, until the maintainer says it's ready and makes it public themselves.
+
 - [ ] Confirm with the maintainer that the repository should go public now.
 - [ ] Create the GitHub repository, set the About field and topics from `docs/positioning.md`, and upload the social preview image.
-- [ ] Push and verify the README renders correctly, especially the demo.
+- [ ] Push and verify the README renders correctly, especially the demo. The demo itself is still an open gap: `README.md` carries a TODO for the P8 screen capture, but no recording was ever made, only the spec in `docs/positioning.md`.
 - [ ] Publish the release.
 - [ ] Submit to the directories and lists found in P7, using the drafts from P8.
 - [ ] Post the launch posts, spaced as the P7 research recommends rather than all at once.
