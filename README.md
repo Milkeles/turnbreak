@@ -5,26 +5,9 @@
 
 Shows you something worth reading while your coding agent works.
 
-```
-$ turnbreak install claude
-$ turnbreak mode folder ~/notes
+![turnbreak: install, point at a folder, and watch an item show up mid-turn](docs/assets/demo.svg)
 
-# the agent starts a long task...
-
-$ turnbreak watch
-http-caching (folder) — ~1 min read
-# HTTP caching, briefly
-
-Cache-Control tells a client how long a response stays fresh, in
-seconds, with max-age. ETag gives the client a fingerprint of the
-response body, so a later request can ask "has this changed?" with
-If-None-Match instead of downloading the whole thing again.
-...
-
-# ...and the agent finishes
-```
-
-That's real output from [`docs/demo.sh`](docs/demo.sh), which runs turnbreak end to end against a scratch folder. Run it yourself to see the full article body.
+That's [`docs/demo.sh`](docs/demo.sh), which runs turnbreak end to end against a scratch folder. Run it yourself to see the full article body.
 
 ## Why
 
