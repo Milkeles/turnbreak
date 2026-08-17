@@ -1,9 +1,17 @@
 import shutil
 import subprocess
 from pathlib import Path
+
 import pytest
 
-EXT_PATH = Path(__file__).resolve().parent.parent / "adapters" / "copilot_extension" / "extension.mjs"
+EXT_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "src"
+    / "turnbreak"
+    / "adapters"
+    / "copilot_extension"
+    / "extension.mjs"
+)
 
 
 def test_extension_file_exists():

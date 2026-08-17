@@ -1,6 +1,6 @@
 {
   "hooks": {
-    "BeforeAgent": "./scripts/turnbreak-hook.py",
-    "AfterAgent": "./scripts/turnbreak-hook.py"
+    "BeforeAgent": [{ "hooks": [{ "type": "command", "command": "{{HOOK_COMMAND}}" }] }],
+    "AfterAgent": [{ "hooks": [{ "type": "command", "command": "{{HOOK_COMMAND}}" }] }]
   }
 }
