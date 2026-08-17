@@ -2,13 +2,11 @@
   "hooks": {
     "UserPromptSubmit": [
       {
-        "matcher": "*",
         "hooks": [{ "type": "command", "command": "{{HOOK_COMMAND}}", "timeout": 30 }]
       }
     ],
     "Stop": [
       {
-        "matcher": "*",
         "hooks": [{ "type": "command", "command": "{{HOOK_COMMAND}}", "timeout": 30 }]
       }
     ]

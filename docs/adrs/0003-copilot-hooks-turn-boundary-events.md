@@ -18,7 +18,7 @@ The repo already shipped a Copilot CLI *extension* (`~/.copilot/extensions/turnb
 
 ## Decision drivers
 
-- The other three adapters (`claude_settings.json`, `codex_hooks.toml`, `gemini_settings.json`) all register the same `turnbreak-hook.py` script under agent-specific turn-start/turn-end event keys, and that script detects which event fired by sniffing the JSON payload on stdin for the event name.
+- The other three adapters (`claude_settings.json`, `codex_hooks.json`, `gemini_settings.json`) all register the same `turnbreak-hook.py` script under agent-specific turn-start/turn-end event keys, and that script detects which event fired by sniffing the JSON payload on stdin for the event name.
 - Copilot CLI's extension SDK (the `activate(sdk)` function extensions export) only exposes `registerSlashCommand`/`registerTool`-style APIs, not turn-boundary hooks. Confirmed via the Copilot CLI extension docs.
 - Copilot CLI separately supports a real hooks mechanism: JSON files at `~/.copilot/hooks/*.json` (`version: 1`, event names as keys, `{"type": "command", "bash": "..."}` entries), confirmed via the official Copilot hooks reference and "Using hooks with GitHub Copilot CLI" docs. `userPromptSubmitted` fires on turn start. `agentStop` fires on turn end. That's a clean match to the other three agents' events.
 - The documented payload shapes for those two events (`{"sessionId", "timestamp", "cwd", "prompt"}` for `userPromptSubmitted`; `{"sessionId", "timestamp", "transcriptPath", "stopReason", "stop_hook_active"}` for `agentStop`) do not include the event name anywhere in the payload, unlike Claude Code, Codex, and Gemini CLI's payloads. The existing sniffing approach in `_detect_event` would silently fail to classify either event.

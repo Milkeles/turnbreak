@@ -9,7 +9,6 @@ from pathlib import Path
 
 from turnbreak.core.config import Config, load_config, save_config
 from turnbreak.core.items import Item
-from turnbreak.sources.extract import extract_article
 from turnbreak.sources.finder import FinderContext
 
 # In the order AGENTS.md lists them: claude -p, codex exec, gemini -p.
@@ -93,11 +92,19 @@ class AgentFinder:
         command: list[str] | None = None,
         count: int = 5,
         runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
-        extractor: Callable[[str], tuple[str, int] | None] = extract_article,
+        extractor: Callable[[str], tuple[str, int] | None] | None = None,
     ) -> None:
         self._command = command
         self._count = count
         self._runner = runner
+        if extractor is None:
+            # Imported lazily so confirm_token_spend, and anyone who just
+            # wants agent detection, don't need the `sources` extra
+            # (trafilatura/pypdf) installed. Only actually finding
+            # candidates does.
+            from turnbreak.sources.extract import extract_article
+
+            extractor = extract_article
         self._extractor = extractor
 
     def find(self, context: FinderContext) -> list[Item]:
