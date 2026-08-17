@@ -3,7 +3,7 @@
 |  |  |
 |---|---|
 | **Covers** | Whole repo |
-| **Last reviewed** | 2026-08-16 |
+| **Last reviewed** | 2026-08-17 |
 
 ---
 
@@ -28,7 +28,9 @@ The name is `turnbreak`, chosen 2026-08-16 over `interlude`, `idlepage`, and `wa
 | Format | `ruff format .` |
 | Type check | `mypy src/turnbreak` |
 | Build | `python -m build` |
-| Run the server by hand | `turnbreak serve --port 7717 --foreground` |
+| Start the server and open the tab | `turnbreak serve --port 7717` |
+| Run the server attached to this terminal | `turnbreak serve --port 7717 --foreground` |
+| Stop a background server | `turnbreak serve --stop` |
 
 ---
 
@@ -139,21 +141,23 @@ Gemini sets `CLAUDE_PROJECT_DIR` as a compatibility alias, so path handling can 
 
 **One tab, reused.** The first fire opens `http://127.0.0.1:7717`. Later items update that same page over the open connection. Opening a second tab is a bug.
 
-**Never prompt in the agent's terminal.** The agent owns that terminal and is drawing to it. A prompt there corrupts the display and can swallow input meant for the agent. All three item actions live as buttons on the page. Users who want terminal control run `turnbreak watch` in a separate pane, which offers the same three actions.
+**Never prompt in the agent's terminal.** The agent owns that terminal and is drawing to it. A prompt there corrupts the display and can swallow input meant for the agent. All item actions live as buttons on the page. Users who want terminal control run `turnbreak watch` in a separate pane, which offers its own read and skip commands. See the note in `TASKS.md` about `watch` not yet matching the browser's read/next/previous model.
 
 **The item stays after the agent finishes.** The done signal changes the tab title, the favicon, and fires a notification. It does not clear the page or close the tab. A user mid-paragraph loses nothing.
 
 ### Item actions
 
-Every item offers exactly three actions. Their effects differ and must not be collapsed.
+Every item offers three actions. Only Read resolves the item. Next and Previous just change what's on screen.
 
 | Action | Effect on this item | Effect on future items |
 |---|---|---|
 | **Read** | Marked read. Never shown again. | Recorded as a match. Feeds the next curated list. |
-| **Skip** | Removed from the list. Never shown again. | Recorded as a miss. Feeds the next curated list. |
-| **Keep reading** | Stays on screen. | Suppresses the next fire, including across turns, until cleared. |
+| **Next** | Stays pending. Just not on screen right now. | None. Doesn't touch the list or history. |
+| **Previous** | Stays pending. Steps back to whatever was on screen before. | None. Doesn't touch the list or history. |
 
-**Keep reading persists across turns.** It holds the whole skill, not one item. If the next turn fires a new item over a held one, that is a bug.
+Next and Previous are browse-only: they replaced an earlier Skip action that removed the item and recorded a miss, which gave the reader no way back. Browse position lives in server memory, not in `state.json`. A restart loses it, which only means Previous has nothing to step back to yet.
+
+**Doing nothing keeps the current item on screen.** That's the default, not a separate action. A fire never replaces an item that's still pending and was already shown to this session. That suppression persists across turns, the same way the old explicit "Keep reading" hold used to. Only picking Read resolves the current item and lets a later turn choose something new. If a later turn fires a new item over one the user hasn't resolved yet, that is a bug.
 
 ### Sources
 
